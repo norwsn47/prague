@@ -56,11 +56,12 @@
 	function arrowIcon(bearingDeg: number): import('leaflet').DivIcon {
 		return L.divIcon({
 			className: '',
-			html: `<svg width="12" height="12" viewBox="0 0 12 12"
+			html: `<svg width="14" height="14" viewBox="0 0 12 12"
 				style="display:block;transform:translate(-50%,-50%)">
 				<g transform="rotate(${bearingDeg},6,6)">
 					<polygon points="6,1 11,11 6,7.5 1,11"
-						fill="#3b82f6" fill-opacity="0.65"/>
+						fill="#3b82f6" fill-opacity="0.85"
+						stroke="#0f172a" stroke-width="1" stroke-linejoin="round"/>
 				</g>
 			</svg>`,
 			iconSize: [0, 0],
