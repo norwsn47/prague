@@ -1,1 +1,118 @@
 @import "tailwindcss";
+
+/* ─── Design tokens ────────────────────────────────────────────────────────── */
+:root {
+  --font:      -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Code", monospace;
+
+  /* Backgrounds */
+  --bg:        #f4f3ef;   /* warm off-white page bg */
+  --sidebar:   #fafaf8;   /* sidebar surface */
+  --surface:   #ffffff;   /* card / input surface */
+  --dark-1:    #0f172a;   /* sidebar header / primary dark band */
+  --dark-2:    #1e293b;   /* elevation header / secondary dark band */
+
+  /* Text */
+  --t1: #111827;   /* primary */
+  --t2: #64748b;   /* secondary */
+  --t3: #94a3b8;   /* muted */
+  --ti: #f8fafc;   /* inverse (on dark) */
+
+  /* Accent (blue-purple) */
+  --accent:       #4f46e5;
+  --accent-soft:  #eef2ff;
+  --accent-dark:  #818cf8;   /* accent on dark background */
+
+  /* Borders */
+  --border:  #e2e8f0;
+  --border-s: #f1f5f9;   /* subtle */
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.05);
+  --shadow-sm: 0 1px 4px rgba(15,23,42,0.07), 0 2px 8px rgba(15,23,42,0.04);
+  --shadow-md: 0 4px 20px rgba(15,23,42,0.09);
+
+  /* Radius */
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  16px;
+  --r-xl:  20px;
+}
+
+/* ─── Global base ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--t1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Reusable component classes ────────────────────────────────────────────── */
+
+/* Small uppercase section label — "RUNNERS", "RACE TIME", etc. */
+.label-caps {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--t3);
+  font-family: var(--font);
+}
+
+/* Large data readout — race time clock */
+.readout {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--t1);
+  line-height: 1;
+  font-family: var(--font);
+}
+
+/* Apple-style input */
+.app-input {
+  display: block;
+  width: 100%;
+  background: #f1f5f9;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--t1);
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+}
+
+.app-input[type="time"] {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.app-input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+}
+
+.app-input::placeholder {
+  color: var(--t3);
+}
+
+/* Pace chip — monospace small badge */
+.pace-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--t2);
+  white-space: nowrap;
+}

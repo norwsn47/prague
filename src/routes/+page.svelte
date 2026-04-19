@@ -5,51 +5,71 @@
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
 </script>
 
-<div class="h-dvh flex flex-col lg:flex-row overflow-hidden">
+<div class="h-dvh flex flex-col lg:flex-row overflow-hidden" style="background:var(--bg)">
 
-	<!-- LEFT sidebar — desktop only -->
-	<aside class="hidden lg:flex lg:flex-col w-80 xl:w-96 shrink-0 border-r border-gray-200 bg-white">
+	<!-- ── LEFT SIDEBAR (desktop only) ─────────────────────────────────────── -->
+	<aside
+		class="hidden lg:flex lg:flex-col w-80 xl:w-88 shrink-0 border-r"
+		style="border-color:var(--border); background:var(--sidebar)"
+	>
 
-		<div class="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
-			<h1 class="text-base font-bold text-gray-800">Prague Marathon</h1>
-			<p class="text-xs text-gray-400 mt-0.5">Spectator planner</p>
+		<!-- Dark header band -->
+		<div class="shrink-0 px-6 py-5" style="background:var(--dark-1)">
+			<p class="label-caps" style="color:var(--accent-dark)">Spectator Planner</p>
+			<h1 class="mt-1.5 text-xl font-bold tracking-tight" style="color:var(--ti); line-height:1.2">
+				Prague Marathon
+			</h1>
 		</div>
 
-		<!-- Runner inputs fill remaining sidebar space, scroll if needed -->
+		<!-- Runner inputs — scrollable -->
 		<div class="flex-1 overflow-y-auto min-h-0">
+			<!-- Section heading lives outside RunnerPanel so padding aligns with dark header -->
+			<div class="px-6 pt-5 pb-1">
+				<p class="label-caps">Runners</p>
+			</div>
 			<RunnerPanel sidebar />
 		</div>
 
-		<!-- Time slider pinned to bottom of sidebar -->
-		<div class="shrink-0 border-t border-gray-100">
+		<!-- Time slider — pinned to bottom -->
+		<div class="shrink-0" style="border-top:1px solid var(--border-s); background:var(--surface)">
 			<TimeSlider />
 		</div>
 
 	</aside>
 
-	<!-- RIGHT content area — map stacked above elevation strip -->
+	<!-- ── RIGHT CONTENT AREA ──────────────────────────────────────────────── -->
 	<div class="flex-1 flex flex-col min-h-0">
 
-		<!-- Map — takes all available vertical space -->
+		<!-- Map — expands to fill all remaining vertical space -->
 		<div class="relative flex-1 min-h-0">
 			<Map />
 			<!-- Mobile runner overlay (hidden on desktop) -->
 			<RunnerPanel />
 		</div>
 
-		<!-- Elevation strip — desktop only, fixed height below map -->
-		<div class="hidden lg:block shrink-0 h-40 border-t border-gray-200">
-			<ElevationStrip />
+		<!-- Elevation strip — desktop only -->
+		<div class="hidden lg:block shrink-0" style="border-top:1px solid var(--border)">
+			<!-- Dark label band -->
+			<div class="flex items-center px-6 py-2 gap-3" style="background:var(--dark-2)">
+				<span class="label-caps" style="color:var(--t3)">Elevation Profile</span>
+			</div>
+			<!-- Chart area -->
+			<div class="h-36" style="background:var(--surface)">
+				<ElevationStrip />
+			</div>
 		</div>
 
-		<!-- Mobile: time slider above bottom cards -->
-		<div class="lg:hidden shrink-0 border-t border-gray-200 bg-white">
+		<!-- Mobile: time slider -->
+		<div class="lg:hidden shrink-0" style="border-top:1px solid var(--border); background:var(--surface)">
 			<TimeSlider />
 		</div>
 
-		<!-- Mobile: checkpoint cards placeholder -->
-		<div class="lg:hidden shrink-0 h-28 bg-gray-50 border-t border-gray-200 flex items-center px-3 overflow-x-auto">
-			<p class="text-sm text-gray-400 whitespace-nowrap">Checkpoint cards will appear here</p>
+		<!-- Mobile: checkpoint placeholder -->
+		<div
+			class="lg:hidden shrink-0 flex items-center px-5 overflow-x-auto"
+			style="height:60px; border-top:1px solid var(--border-s); background:var(--surface)"
+		>
+			<p class="label-caps whitespace-nowrap">Checkpoints coming soon</p>
 		</div>
 
 	</div>

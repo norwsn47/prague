@@ -13,21 +13,24 @@
 	let marker1: import('leaflet').Marker | null = null;
 	let marker2: import('leaflet').Marker | null = null;
 
-	// 'start-finish' = dark slate pill; 'km' = white pill with border
+	// 'start-finish' = dark navy pill; 'km' = white pill with subtle border
 	function distanceIcon(label: string, variant: 'start-finish' | 'km'): import('leaflet').DivIcon {
-		const bg = variant === 'start-finish' ? '#1e293b' : '#ffffff';
-		const textColor = variant === 'start-finish' ? '#f1f5f9' : '#374151';
-		const border = variant === 'km' ? '1.5px solid #d1d5db' : 'none';
+		const bg          = variant === 'start-finish' ? '#0f172a' : '#ffffff';
+		const textColor   = variant === 'start-finish' ? '#f8fafc' : '#374151';
+		const border      = variant === 'km' ? '1px solid #e2e8f0' : 'none';
+		const shadow      = variant === 'start-finish'
+			? '0 2px 8px rgba(15,23,42,0.30),0 1px 2px rgba(15,23,42,0.20)'
+			: '0 1px 4px rgba(15,23,42,0.12),0 1px 2px rgba(15,23,42,0.08)';
 		return L.divIcon({
 			className: '',
 			html: `<div style="
 				display:inline-block;
 				background:${bg};color:${textColor};border:${border};
-				border-radius:4px;padding:3px 8px;
-				font-size:11px;font-weight:600;
-				font-family:ui-sans-serif,system-ui,sans-serif;
+				border-radius:6px;padding:3px 9px;
+				font-size:11px;font-weight:700;letter-spacing:0.01em;
+				font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
 				white-space:nowrap;
-				box-shadow:0 1px 5px rgba(0,0,0,0.30);
+				box-shadow:${shadow};
 				transform:translate(-50%,-50%);
 			">${label}</div>`,
 			iconSize: [0, 0],

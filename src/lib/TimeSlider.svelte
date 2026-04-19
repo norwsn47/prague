@@ -5,7 +5,6 @@
 	const min = $derived(raceStart());
 	const max = $derived(raceEnd());
 
-	// Clamp current time when range changes
 	$effect(() => {
 		const lo = min;
 		const hi = max;
@@ -18,28 +17,62 @@
 	);
 </script>
 
-<div class="flex flex-col gap-3 p-4">
-	<div class="flex items-baseline justify-between">
-		<span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Race time</span>
-		<span class="text-2xl font-bold tabular-nums text-gray-800">{formatTime(timeState.current)}</span>
+<div class="px-6 py-5 flex flex-col" style="gap:14px">
+
+	<!-- Label + time readout -->
+	<div class="flex items-end justify-between gap-4">
+		<span class="label-caps">Race Time</span>
+		<span class="readout">{formatTime(timeState.current)}</span>
 	</div>
 
-	<!-- Slider -->
-	<div class="relative">
+	<!-- Range slider -->
+	<div>
 		<input
 			type="range"
 			min={min}
 			max={max}
 			step={60}
 			bind:value={timeState.current}
-			class="w-full h-2 rounded-full appearance-none cursor-pointer
-				   bg-gray-200 accent-blue-500"
-			style="background: linear-gradient(to right, #3b82f6 {progress}%, #e5e7eb {progress}%)"
+			class="w-full cursor-pointer appearance-none"
+			style="
+				height: 3px;
+				border-radius: 99px;
+				background: linear-gradient(to right, var(--accent) {progress}%, #e2e8f0 {progress}%);
+				accent-color: var(--accent);
+				outline: none;
+			"
 		/>
-		<div class="flex justify-between mt-1">
-			<span class="text-xs text-gray-400 tabular-nums">{formatTime(min)}</span>
-			<span class="text-xs text-gray-400 tabular-nums">{formatTime(max)}</span>
+		<div class="flex justify-between mt-2">
+			<span class="label-caps" style="text-transform:none;letter-spacing:0;font-size:11px;color:var(--t3)">
+				{formatTime(min)}
+			</span>
+			<span class="label-caps" style="text-transform:none;letter-spacing:0;font-size:11px;color:var(--t3)">
+				{formatTime(max)}
+			</span>
 		</div>
 	</div>
 
 </div>
+
+<style>
+	/* Thumb styling — cross-browser */
+	input[type="range"]::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: var(--accent);
+		border: 2.5px solid white;
+		box-shadow: 0 1px 4px rgba(79,70,229,0.35);
+		cursor: pointer;
+	}
+	input[type="range"]::-moz-range-thumb {
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: var(--accent);
+		border: 2.5px solid white;
+		box-shadow: 0 1px 4px rgba(79,70,229,0.35);
+		cursor: pointer;
+	}
+</style>

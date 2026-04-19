@@ -144,7 +144,7 @@
 	});
 </script>
 
-<div class="relative w-full h-full bg-white select-none overflow-hidden">
+<div class="relative w-full h-full select-none overflow-hidden" style="background:var(--surface)">
 
 	<!-- Elevation SVG -->
 	<svg
@@ -154,13 +154,13 @@
 		preserveAspectRatio="none"
 		aria-hidden="true"
 	>
-		<rect width="1000" height={AXIS_Y} fill="#f9fafb" />
+		<rect width="1000" height={AXIS_Y} fill="#fafaf8" />
 
 		{#each [25, 50, 75] as y}
-			<line x1="0" y1={y} x2="1000" y2={y} stroke="#f3f4f6" stroke-width="1" />
+			<line x1="0" y1={y} x2="1000" y2={y} stroke="#f1f0ec" stroke-width="1" />
 		{/each}
 
-		<line x1="0" y1={AXIS_Y} x2="1000" y2={AXIS_Y} stroke="#e5e7eb" stroke-width="1.5" />
+		<line x1="0" y1={AXIS_Y} x2="1000" y2={AXIS_Y} stroke="#e2e8f0" stroke-width="1.5" />
 
 		{#each KM_MARKS as km}
 			<line
@@ -168,22 +168,22 @@
 				y1={TICK_TOP}
 				x2={(km * 1000 / ROUTE_TOTAL_M) * 1000}
 				y2={AXIS_Y}
-				stroke="#d1d5db"
-				stroke-width="1.5"
+				stroke="#e2e8f0"
+				stroke-width="1"
 			/>
 		{/each}
-		<line x1="1000" y1={TICK_TOP} x2="1000" y2={AXIS_Y} stroke="#d1d5db" stroke-width="1.5" />
+		<line x1="1000" y1={TICK_TOP} x2="1000" y2={AXIS_Y} stroke="#e2e8f0" stroke-width="1" />
 
 		{#if elevPath}
-			<path d={elevPath.fill} fill="#3b82f6" fill-opacity="0.12" />
-			<path d={elevPath.line} fill="none" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round" />
+			<path d={elevPath.fill} fill="#4f46e5" fill-opacity="0.08" />
+			<path d={elevPath.line} fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linejoin="round" />
 		{:else if loadError}
 			<text x="500" y="52" text-anchor="middle" font-size="11" fill="#f87171"
-				font-family="ui-sans-serif, system-ui, sans-serif">{loadError}</text>
+				font-family="-apple-system,BlinkMacSystemFont,sans-serif">{loadError}</text>
 		{:else}
-			<text x="500" y="52" text-anchor="middle" font-size="13" fill="#d1d5db"
-				font-family="ui-sans-serif, system-ui, sans-serif" font-weight="500" letter-spacing="1"
-			>ELEVATION PROFILE</text>
+			<text x="500" y="52" text-anchor="middle" font-size="11" fill="#d1d5db"
+				font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-weight="600" letter-spacing="2"
+			>ELEVATION</text>
 		{/if}
 	</svg>
 
@@ -223,35 +223,36 @@
 				transform:translate(-50%,-50%);
 			"></div>
 
-			<!-- Pinned label — fixed near the top, white pill background -->
+			<!-- Pinned label — fixed near the top, white pill, runner-coloured border -->
 			<div style="
 				position:absolute;
 				left:{Math.min(Math.max(m.xPct, 3), 97)}%;
 				top:{m.labelTopPx}px;
 				transform:translateX(-50%);
-				background:white;
+				background:var(--surface,#fff);
 				border:1.5px solid {m.borderColor};
-				border-radius:4px;
-				padding:2px 6px;
-				font-size:11px;font-weight:600;
-				font-family:ui-sans-serif,system-ui,sans-serif;
+				border-radius:6px;
+				padding:2px 7px;
+				font-size:10px;font-weight:700;
+				letter-spacing:0.01em;
+				font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
 				color:{m.color};
 				white-space:nowrap;
-				box-shadow:0 1px 3px rgba(0,0,0,0.12);
+				box-shadow:0 1px 4px rgba(15,23,42,0.10);
 			">{m.label}</div>
 		{/each}
 	</div>
 
 	<!-- X-axis distance labels -->
 	<div class="absolute bottom-0 left-0 right-0 h-6">
-		<span class="absolute left-0 text-xs text-gray-400 bottom-1">0km</span>
+		<span class="absolute left-0 bottom-1 label-caps" style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)">0km</span>
 		{#each KM_MARKS.slice(1) as km}
 			<span
-				class="absolute text-xs text-gray-400 bottom-1 -translate-x-1/2"
-				style="left:{pct(km)}%"
+				class="absolute bottom-1 -translate-x-1/2 label-caps"
+				style="left:{pct(km)}%;font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)"
 			>{km}km</span>
 		{/each}
-		<span class="absolute right-0 text-xs text-gray-400 bottom-1">{FINISH_KM}km</span>
+		<span class="absolute right-0 bottom-1 label-caps" style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)">{FINISH_KM}km</span>
 	</div>
 
 </div>
