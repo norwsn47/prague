@@ -23,17 +23,17 @@
 			</h1>
 		</div>
 
+		<!-- Time of day slider — directly below header -->
+		<div class="shrink-0" style="border-bottom:1px solid var(--border-s); background:var(--surface)">
+			<TimeSlider />
+		</div>
+
 		<!-- Runner inputs (scrollable) -->
 		<div class="flex-1 overflow-y-auto min-h-0">
 			<div class="px-6 pt-5 pb-1">
 				<p class="label-caps">Runners</p>
 			</div>
 			<RunnerPanel sidebar />
-		</div>
-
-		<!-- Time slider pinned to bottom -->
-		<div class="shrink-0" style="border-top:1px solid var(--border-s); background:var(--surface)">
-			<TimeSlider />
 		</div>
 	</aside>
 

@@ -76,8 +76,9 @@
 		xPct: number;
 		dotYPct: number;
 		label: string;
-		/** Fixed px offset from the top of the chart area */
 		labelTopPx: number;
+		/** CSS transform for label — shifts based on position to avoid edge clipping */
+		labelTransform: string;
 	};
 
 	const runnerMarkers = $derived.by((): Marker[] => {
@@ -102,11 +103,16 @@
 				const dotYPct = (y_vb / AXIS_Y) * 100;
 
 				const label =
-					elapsed < 0       ? `${name} — 0.0 km` :
-					distM >= 42195    ? `${name} — 42.2 km` :
-					                    `${name} — ${distKm.toFixed(1)} km`;
+					elapsed < 0    ? `${name} — at start` :
+					distM >= 42195 ? `${name} — finished` :
+					                 `${name} — ${distKm.toFixed(1)} km`;
 
-				return { color, borderColor, xPct, dotYPct, label, labelTopPx };
+				const labelTransform =
+					xPct < 8  ? 'translateX(0)' :
+					xPct > 92 ? 'translateX(-100%)' :
+					            'translateX(-50%)';
+
+				return { color, borderColor, xPct, dotYPct, label, labelTopPx, labelTransform };
 			});
 	});
 
@@ -223,12 +229,12 @@
 				transform:translate(-50%,-50%);
 			"></div>
 
-			<!-- Pinned label — fixed near the top, white pill, runner-coloured border -->
+			<!-- Pinned label — fixed near top, transform shifts to avoid edge clipping -->
 			<div style="
 				position:absolute;
-				left:{Math.min(Math.max(m.xPct, 3), 97)}%;
+				left:{m.xPct}%;
 				top:{m.labelTopPx}px;
-				transform:translateX(-50%);
+				transform:{m.labelTransform};
 				background:var(--surface,#fff);
 				border:1.5px solid {m.borderColor};
 				border-radius:6px;

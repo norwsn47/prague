@@ -61,7 +61,7 @@
 				<g transform="rotate(${bearingDeg},6,6)">
 					<polygon points="6,1 11,11 6,7.5 1,11"
 						fill="#3b82f6" fill-opacity="0.85"
-						stroke="#0f172a" stroke-width="1" stroke-linejoin="round"/>
+						stroke="white" stroke-width="1.2" stroke-linejoin="round" stroke-opacity="0.65"/>
 				</g>
 			</svg>`,
 			iconSize: [0, 0],

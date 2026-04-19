@@ -65,7 +65,7 @@
 
 	<!-- Label + readout -->
 	<div class="flex items-end justify-between gap-4">
-		<span class="label-caps">Race Time</span>
+		<span class="label-caps">Time of day</span>
 		<span class="readout">{formatTime(timeState.current)}</span>
 	</div>
 
