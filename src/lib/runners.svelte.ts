@@ -1,34 +1,50 @@
 export class Runner {
-	name = $state('');
-	startTime = $state('09:00');
-	finishTime = $state('4:00:00');
+	readonly name: string;
+	readonly hexColor: string;
+	startTime = $state('11:00');
+	finishTime = $state('3:00:00');
 
-	/** Parse finishTime string (H:MM or H:MM:SS) into total seconds */
+	constructor(name: string, hexColor: string, defaultFinish: string) {
+		this.name = name;
+		this.hexColor = hexColor;
+		this.finishTime = defaultFinish;
+	}
+
 	get finishSeconds(): number {
 		return parseDuration(this.finishTime);
 	}
 
-	/** Parse startTime string (HH:MM) into seconds since midnight */
 	get startSeconds(): number {
 		const [h, m] = this.startTime.split(':').map(Number);
 		return (h || 0) * 3600 + (m || 0) * 60;
 	}
 
-	/** Pace in seconds per metre */
+	/** Seconds per metre at target pace */
 	get pacePerMetre(): number {
 		const secs = this.finishSeconds;
 		return secs > 0 ? secs / 42195 : 0;
 	}
 
+	/** Human-readable pace string, e.g. "4:16 /km" */
+	get paceString(): string {
+		const secs = this.finishSeconds;
+		if (secs <= 0) return '';
+		const secsPerKm = secs / 42.195;
+		const mins = Math.floor(secsPerKm / 60);
+		const sec = Math.round(secsPerKm % 60);
+		return `${mins}:${String(sec).padStart(2, '0')} /km`;
+	}
+
 	get isValid(): boolean {
-		return this.name.trim().length > 0 && this.finishSeconds > 0;
+		return this.finishSeconds > 0;
 	}
 }
 
-export const runner1 = new Runner();
-export const runner2 = new Runner();
+// Will — dark green; Maggie — pink
+export const runner1 = new Runner('Will', '#15803d', '3:00:00');
+export const runner2 = new Runner('Maggie', '#ec4899', '4:55:00');
 
-/** Parse "H:MM", "H:MM:SS" into seconds */
+/** Parse "H:MM" or "H:MM:SS" into total seconds */
 export function parseDuration(s: string): number {
 	const parts = s.split(':').map(Number);
 	if (parts.some(isNaN)) return 0;
