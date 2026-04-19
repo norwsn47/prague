@@ -2,6 +2,8 @@
 	import { timeState, raceStart, raceEnd } from './time.svelte.js';
 	import { formatTime } from './runners.svelte.js';
 
+	let { compact = false }: { compact?: boolean } = $props();
+
 	const min = $derived(raceStart());
 	const max = $derived(raceEnd());
 
@@ -17,15 +19,57 @@
 	);
 </script>
 
+{#if compact}
+
+<!-- ── Compact single-row slider for mobile bottom stack (~44px tall) ─── -->
+<div style="
+	display:flex; align-items:center; gap:10px;
+	padding:10px 16px;
+	background:var(--surface);
+">
+	<!-- Current time -->
+	<span style="
+		font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;
+		color:var(--t1); font-family:var(--font);
+		min-width:2.4rem; flex-shrink:0; text-align:right;
+	">{formatTime(timeState.current)}</span>
+
+	<!-- Slider -->
+	<input
+		type="range"
+		min={min}
+		max={max}
+		step={60}
+		bind:value={timeState.current}
+		class="compact-slider"
+		style="
+			flex:1; min-width:0;
+			height:3px; border-radius:99px;
+			background:linear-gradient(to right, var(--accent) {progress}%, #e2e8f0 {progress}%);
+			cursor:pointer; appearance:none; -webkit-appearance:none; outline:none;
+		"
+	/>
+
+	<!-- End time -->
+	<span style="
+		font-size:10px; font-weight:600;
+		color:var(--t3); font-family:var(--font);
+		flex-shrink:0;
+	">{formatTime(max)}</span>
+</div>
+
+{:else}
+
+<!-- ── Full slider for desktop sidebar ──────────────────────────────────── -->
 <div class="px-6 py-5 flex flex-col" style="gap:14px">
 
-	<!-- Label + time readout -->
+	<!-- Label + readout -->
 	<div class="flex items-end justify-between gap-4">
 		<span class="label-caps">Race Time</span>
 		<span class="readout">{formatTime(timeState.current)}</span>
 	</div>
 
-	<!-- Range slider -->
+	<!-- Slider -->
 	<div>
 		<input
 			type="range"
@@ -35,27 +79,22 @@
 			bind:value={timeState.current}
 			class="w-full cursor-pointer appearance-none"
 			style="
-				height: 3px;
-				border-radius: 99px;
-				background: linear-gradient(to right, var(--accent) {progress}%, #e2e8f0 {progress}%);
-				accent-color: var(--accent);
-				outline: none;
+				height:3px; border-radius:99px;
+				background:linear-gradient(to right, var(--accent) {progress}%, #e2e8f0 {progress}%);
+				accent-color:var(--accent); outline:none;
 			"
 		/>
 		<div class="flex justify-between mt-2">
-			<span class="label-caps" style="text-transform:none;letter-spacing:0;font-size:11px;color:var(--t3)">
-				{formatTime(min)}
-			</span>
-			<span class="label-caps" style="text-transform:none;letter-spacing:0;font-size:11px;color:var(--t3)">
-				{formatTime(max)}
-			</span>
+			<span style="font-size:11px; color:var(--t3)">{formatTime(min)}</span>
+			<span style="font-size:11px; color:var(--t3)">{formatTime(max)}</span>
 		</div>
 	</div>
 
 </div>
 
+{/if}
+
 <style>
-	/* Thumb styling — cross-browser */
 	input[type="range"]::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		width: 18px;
