@@ -1,12 +1,14 @@
 export class Runner {
 	readonly name: string;
 	readonly hexColor: string;
+	readonly raceNumber: string;
 	startTime = $state('11:00');
 	finishTime = $state('3:00:00');
 
-	constructor(name: string, hexColor: string, defaultFinish: string) {
+	constructor(name: string, hexColor: string, defaultFinish: string, raceNumber = '') {
 		this.name = name;
 		this.hexColor = hexColor;
+		this.raceNumber = raceNumber;
 		this.finishTime = defaultFinish;
 	}
 
@@ -41,8 +43,8 @@ export class Runner {
 }
 
 // Will — dark green; Maggie — pink
-export const runner1 = new Runner('Will', '#15803d', '3:00:00');
-export const runner2 = new Runner('Maggie', '#ec4899', '4:55:00');
+export const runner1 = new Runner('Will',   '#15803d', '3:00:00', '1125');
+export const runner2 = new Runner('Maggie', '#ec4899', '4:55:00', 'F1645');
 
 /** Parse "H:MM" or "H:MM:SS" into total seconds */
 export function parseDuration(s: string): number {

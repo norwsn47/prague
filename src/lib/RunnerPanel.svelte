@@ -18,6 +18,9 @@
 		<div class="flex items-center gap-2">
 			<span class="w-2 h-2 rounded-full shrink-0" style="background:{cfg.runner.hexColor}"></span>
 			<span class="text-sm font-semibold" style="color:var(--t1)">{cfg.runner.name}</span>
+			{#if cfg.runner.raceNumber}
+				<span style="font-size:11px; color:var(--t3)">({cfg.runner.raceNumber})</span>
+			{/if}
 			{#if cfg.runner.paceString}
 				<span class="pace-chip ml-auto">{cfg.runner.paceString}</span>
 			{/if}

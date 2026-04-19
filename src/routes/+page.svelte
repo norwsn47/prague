@@ -88,6 +88,9 @@
 								font-size:12px; font-weight:600; color:var(--t1);
 								white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 							">{runner.name}</span>
+							{#if runner.raceNumber}
+								<span style="font-size:10px; color:var(--t3); white-space:nowrap">({runner.raceNumber})</span>
+							{/if}
 							{#if runner.paceString}
 								<span style="
 									font-size:10px; font-family:var(--font-mono);
@@ -146,6 +149,9 @@
 									<span style="font-size:12px; font-weight:700; color:var(--t1); white-space:nowrap">
 										{r.name}
 									</span>
+									{#if r.raceNumber}
+										<span style="font-size:10px; color:var(--t3); white-space:nowrap">({r.raceNumber})</span>
+									{/if}
 									{#if r.paceString}
 										<span class="pace-chip" style="margin-left:auto; flex-shrink:0">
 											{r.paceString}
