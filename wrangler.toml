@@ -1,0 +1,8 @@
+name = "prague"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "prague-checkpoints"
+database_id = "placeholder-replace-after-cf-create"
