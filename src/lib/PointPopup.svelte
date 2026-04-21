@@ -15,33 +15,37 @@
 		onDelete: () => void;
 	} = $props();
 
-	let name = $state(untrack(() => point.name));
+	let name    = $state(untrack(() => point.name));
 	let comment = $state(untrack(() => point.comment));
 	let deleting = $state(false);
 
-	const hasTwoCrossings = $derived(point.distance_m_2 != null);
+	const distances = $derived(
+		point.distance_m_2 != null
+			? [point.distance_m, point.distance_m_2]
+			: [point.distance_m]
+	);
 
 	function arrivalAt(distM: number, runner: typeof runner1): string {
 		if (!runner.isValid) return '—';
-		if (distM >= 42195) return 'Finished';
+		if (distM >= 42195) return 'finished';
 		return formatTime(runner.startSeconds + distM * runner.pacePerMetre);
 	}
 
-	function handleDelete() {
-		deleting = true;
-		onDelete();
+	function kmLabel(distM: number): string {
+		return (distM / 1000).toFixed(1) + ' km';
 	}
 </script>
 
 <div style="
-	width: 230px;
+	width: 100%;
 	font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+	box-sizing: border-box;
 ">
-	<!-- Header: letter + name input -->
-	<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">
+	<!-- Header: letter badge + name input -->
+	<div style="display:flex; align-items:center; gap:8px; margin-bottom:9px">
 		<span style="
-			width:22px; height:22px; border-radius:50%;
-			background:#f59e0b; color:white; flex-shrink:0;
+			width:22px; height:22px; border-radius:50%; flex-shrink:0;
+			background:#f59e0b; color:white;
 			display:flex; align-items:center; justify-content:center;
 			font-size:11px; font-weight:700;
 		">{letter}</span>
@@ -51,16 +55,15 @@
 			placeholder="Name this spot…"
 			onblur={() => onSave(name, comment)}
 			style="
-				flex:1; min-width:0;
+				flex:1; min-width:0; box-sizing:border-box; width:100%;
 				border:1.5px solid #e2e8f0; border-radius:6px;
 				padding:5px 8px; font-size:12px; color:#111827;
 				outline:none; background:#f8fafc; font-family:inherit;
-				box-sizing:border-box; width:100%;
 			"
 		/>
 	</div>
 
-	<!-- Comment -->
+	<!-- Notes -->
 	<textarea
 		bind:value={comment}
 		placeholder="Notes…"
@@ -71,50 +74,34 @@
 			border:1.5px solid #e2e8f0; border-radius:6px;
 			padding:5px 8px; font-size:11px; color:#374151;
 			resize:none; outline:none; background:#f8fafc;
-			font-family:inherit; margin-bottom:8px;
+			font-family:inherit; margin-bottom:10px;
 		"
 	></textarea>
 
-	<!-- Arrival times -->
-	<div style="
-		background:#f8fafc; border-radius:6px;
-		padding:6px 10px; margin-bottom:8px;
-	">
-		{#if hasTwoCrossings}
-			<!-- Two-crossing grid: runner | 1st | 2nd -->
+	<!-- Arrival times: one block per distance -->
+	{#each distances as distM, i}
+		<div style="
+			background:#f8fafc; border-radius:6px; padding:7px 10px;
+			{i < distances.length - 1 ? 'margin-bottom:6px' : 'margin-bottom:10px'};
+		">
+			<!-- Distance label -->
 			<div style="
-				display:grid; grid-template-columns:1fr auto auto;
-				gap:2px 10px; align-items:center;
-			">
-				<!-- Header row -->
-				<div></div>
-				<span style="font-size:9px; font-weight:700; color:#94a3b8; text-align:right; letter-spacing:0.05em">1ST</span>
-				<span style="font-size:9px; font-weight:700; color:#94a3b8; text-align:right; letter-spacing:0.05em">2ND</span>
-				<!-- Runner rows -->
-				{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
-					<span style="font-size:11px; color:{color}; font-weight:600">{r.name}</span>
-					<span style="font-size:11px; font-weight:700; color:#1e293b; font-variant-numeric:tabular-nums; text-align:right">
-						{arrivalAt(point.distance_m, r)}
-					</span>
-					<span style="font-size:11px; font-weight:700; color:#1e293b; font-variant-numeric:tabular-nums; text-align:right">
-						{arrivalAt(point.distance_m_2!, r)}
-					</span>
-				{/each}
-			</div>
-		{:else}
-			<!-- Single crossing -->
-			<div style="display:flex; flex-direction:column; gap:4px">
-				{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
-					<div style="display:flex; justify-content:space-between; align-items:center">
-						<span style="font-size:11px; color:{color}; font-weight:600">{r.name}</span>
-						<span style="font-size:11px; font-weight:700; color:#1e293b; font-variant-numeric:tabular-nums">
-							{arrivalAt(point.distance_m, r)}
-						</span>
-					</div>
-				{/each}
-			</div>
-		{/if}
-	</div>
+				font-size:9px; font-weight:700; letter-spacing:0.07em;
+				text-transform:uppercase; color:#94a3b8; margin-bottom:5px;
+			">{distances.length > 1 ? `At ${kmLabel(distM)}` : `Distance: ${kmLabel(distM)}`}</div>
+
+			<!-- Runner rows -->
+			{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
+				<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px">
+					<span style="font-size:11px; font-weight:600; color:{color}">{r.name}</span>
+					<span style="
+						font-size:12px; font-weight:700; color:#0f172a;
+						font-variant-numeric:tabular-nums; font-family:inherit;
+					">{arrivalAt(distM, r)}</span>
+				</div>
+			{/each}
+		</div>
+	{/each}
 
 	<!-- Actions -->
 	<div style="display:flex; gap:6px">
@@ -125,19 +112,16 @@
 			style="
 				flex:1; text-align:center; padding:6px 0;
 				background:#4f46e5; color:white; border-radius:6px;
-				font-size:11px; font-weight:600; text-decoration:none;
-				display:block;
+				font-size:11px; font-weight:600; text-decoration:none; display:block;
 			"
 		>Google Maps</a>
 		<button
-			onclick={handleDelete}
+			onclick={() => { deleting = true; onDelete(); }}
 			disabled={deleting}
 			style="
-				flex:0 0 auto; padding:6px 12px;
-				background:#fff0f0; color:#dc2626;
+				padding:6px 12px; background:#fff0f0; color:#dc2626;
 				border:1.5px solid #fecaca; border-radius:6px;
-				font-size:11px; font-weight:600; cursor:pointer;
-				font-family:inherit;
+				font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;
 			"
 		>{deleting ? '…' : 'Delete'}</button>
 	</div>

@@ -3,9 +3,16 @@
 	import RunnerPanel from '$lib/RunnerPanel.svelte';
 	import TimeSlider from '$lib/TimeSlider.svelte';
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
-	import { runner1, runner2 } from '$lib/runners.svelte.js';
+	import { runner1, runner2, formatTime } from '$lib/runners.svelte.js';
+	import { pointsStore } from '$lib/spectatorPoints.svelte.js';
 
 	let mobileRunnerOpen = $state(false);
+
+	function arrivalAt(distM: number, runner: typeof runner1): string {
+		if (!runner.isValid) return '—';
+		if (distM >= 42195) return 'fin';
+		return formatTime(runner.startSeconds + distM * runner.pacePerMetre);
+	}
 </script>
 
 <div class="h-dvh flex flex-col lg:flex-row overflow-hidden" style="background:var(--bg)">
@@ -28,12 +35,55 @@
 			<TimeSlider />
 		</div>
 
-		<!-- Runner inputs (scrollable) -->
+		<!-- Runner inputs + spectator list (scrollable) -->
 		<div class="flex-1 overflow-y-auto min-h-0">
 			<div class="px-6 pt-5 pb-1">
 				<p class="label-caps">Runners</p>
 			</div>
 			<RunnerPanel sidebar />
+
+			<!-- Spectator points list — shown when any points exist -->
+			{#if pointsStore.sorted.length > 0}
+				<div style="border-top:1px solid var(--border-s); padding:16px 24px 4px">
+					<p class="label-caps">Spectator Points</p>
+				</div>
+				<table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:8px">
+					<thead>
+						<tr style="border-bottom:1px solid var(--border-s)">
+							<th style="padding:4px 6px 4px 24px; text-align:left;  color:var(--t3); font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase"></th>
+							<th style="padding:4px 6px; text-align:left;  color:var(--t3); font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">KM</th>
+							<th style="padding:4px 6px; text-align:right; color:#15803d;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Will</th>
+							<th style="padding:4px 6px 4px 6px; text-align:right; color:#ec4899;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Maggie</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each pointsStore.sorted as point, i}
+							{@const letter = String.fromCharCode(65 + i)}
+							{@const distances = point.distance_m_2 != null ? [point.distance_m, point.distance_m_2] : [point.distance_m]}
+							{#each distances as distM}
+								<tr
+									class="sp-row"
+									onclick={() => { pointsStore.openPopupId = point.id; }}
+									title={point.name || undefined}
+								>
+									<td style="padding:6px 4px 6px 24px">
+										<span style="width:18px;height:18px;border-radius:50%;background:#f59e0b;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center">{letter}</span>
+									</td>
+									<td style="padding:6px 4px; color:var(--t2); font-variant-numeric:tabular-nums">
+										{(distM / 1000).toFixed(1)}
+									</td>
+									<td style="padding:6px 4px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; color:var(--t1)">
+										{arrivalAt(distM, runner1)}
+									</td>
+									<td style="padding:6px 4px 6px 6px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; color:var(--t1)">
+										{arrivalAt(distM, runner2)}
+									</td>
+								</tr>
+							{/each}
+						{/each}
+					</tbody>
+				</table>
+			{/if}
 		</div>
 
 		<!-- Desktop hint -->
@@ -224,3 +274,8 @@
 	</div>
 
 </div>
+
+<style>
+	.sp-row { cursor: pointer; border-bottom: 1px solid var(--border-s); }
+	.sp-row:hover { background: var(--border-s); }
+</style>
