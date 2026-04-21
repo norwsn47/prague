@@ -35,6 +35,13 @@
 			</div>
 			<RunnerPanel sidebar />
 		</div>
+
+		<!-- Desktop hint -->
+		<div class="shrink-0 px-6 py-3" style="border-top:1px solid var(--border-s)">
+			<p style="font-size:11px; color:var(--t3); text-align:center; margin:0">
+				Click near the route to add a marker
+			</p>
+		</div>
 	</aside>
 
 	<!-- ── RIGHT / MAIN CONTENT ────────────────────────────────────────────── -->
@@ -115,6 +122,13 @@
 					</svg>
 				</div>
 			</button>
+
+			<!-- Mobile hint -->
+			<div style="padding:3px 16px 5px; background:var(--surface)">
+				<p style="font-size:10px; color:var(--t3); text-align:center; margin:0">
+					Tap near the route to add a marker
+				</p>
+			</div>
 
 			<!-- Expanded runner inputs — visible only when open -->
 			{#if mobileRunnerOpen}

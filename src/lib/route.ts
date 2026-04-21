@@ -597,6 +597,63 @@ export function positionAtDistance(distanceM: number): [number, number] {
 	return [lon1 + t * (lon2 - lon1), lat1 + t * (lat2 - lat1)];
 }
 
+export type SnapCandidate = {
+	position: [number, number];
+	distanceM: number;
+	perpDistM: number;
+};
+
+/**
+ * Find all route segments within `toleranceM` metres of the click.
+ * Returns up to 2 candidates after deduplicating segments that are
+ * within 200 m of each other along the route (keeping the nearest one).
+ * Results are ordered by route distance (first crossing first).
+ */
+export function findAllSnapCandidates(
+	clickLon: number,
+	clickLat: number,
+	toleranceM: number
+): SnapCandidate[] {
+	const raw: SnapCandidate[] = [];
+
+	for (let i = 0; i < ROUTE_COORDS.length - 1; i++) {
+		const [x1, y1] = ROUTE_COORDS[i];
+		const [x2, y2] = ROUTE_COORDS[i + 1];
+		const dx = x2 - x1;
+		const dy = y2 - y1;
+		const len2 = dx * dx + dy * dy;
+		const t = len2 === 0 ? 0 : Math.max(0, Math.min(1,
+			((clickLon - x1) * dx + (clickLat - y1) * dy) / len2
+		));
+		const px = x1 + t * dx;
+		const py = y1 + t * dy;
+		const perpM = haversine([clickLon, clickLat], [px, py]);
+		if (perpM <= toleranceM) {
+			raw.push({
+				position: [px, py],
+				distanceM: ROUTE_DISTANCES[i] + t * haversine(ROUTE_COORDS[i], ROUTE_COORDS[i + 1]),
+				perpDistM: perpM,
+			});
+		}
+	}
+
+	// Sort by route distance
+	raw.sort((a, b) => a.distanceM - b.distanceM);
+
+	// Merge candidates within 200 m of each other along the route (keep nearest)
+	const merged: SnapCandidate[] = [];
+	for (const c of raw) {
+		const last = merged[merged.length - 1];
+		if (last && c.distanceM - last.distanceM < 200) {
+			if (c.perpDistM < last.perpDistM) merged[merged.length - 1] = c;
+		} else {
+			merged.push(c);
+		}
+	}
+
+	return merged.slice(0, 2);
+}
+
 /** Snap a click [lon, lat] to the nearest route point.
  *  Returns the snapped [lon, lat], route distance in metres, and
  *  the perpendicular distance from the click to the route in metres.

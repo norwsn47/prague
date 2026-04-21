@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { mount, unmount } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
-	import { ROUTE_COORDS, ROUTE_TOTAL_M, positionAtDistance, snapToRoute } from './route.js';
+	import { ROUTE_COORDS, ROUTE_TOTAL_M, positionAtDistance, findAllSnapCandidates } from './route.js';
 	import { runner1, runner2 } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
 	import { pointsStore, type SpectatorPoint } from './spectatorPoints.svelte.js';
@@ -290,15 +290,20 @@
 
 		// Map click → create spectator point if within 50 m of route
 		map.on('click', async (e: import('leaflet').LeafletMouseEvent) => {
-			const snap = snapToRoute(e.latlng.lng, e.latlng.lat);
-			if (snap.perpDistM > 50) return;
+			const candidates = findAllSnapCandidates(e.latlng.lng, e.latlng.lat, 50);
+			if (candidates.length === 0) return;
+
+			// Use nearest for the marker position; order by route distance for crossings
+			const nearest = candidates.reduce((a, b) => a.perpDistM < b.perpDistM ? a : b);
+			const byDist = [...candidates].sort((a, b) => a.distanceM - b.distanceM);
 
 			const created = await pointsStore.create({
 				name: '',
 				comment: '',
-				lat: snap.position[1],
-				lon: snap.position[0],
-				distance_m: snap.distanceM,
+				lat: nearest.position[1],
+				lon: nearest.position[0],
+				distance_m: byDist[0].distanceM,
+				distance_m_2: byDist[1]?.distanceM ?? null,
 			});
 
 			if (!created) return;

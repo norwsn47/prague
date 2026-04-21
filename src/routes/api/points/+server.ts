@@ -20,14 +20,23 @@ export const POST: RequestHandler = async ({ platform, request }) => {
 		lat: number;
 		lon: number;
 		distance_m: number;
+		distance_m_2?: number | null;
 	};
 
 	const id = crypto.randomUUID();
 	await db
 		.prepare(
-			'INSERT INTO spectator_points (id, name, comment, lat, lon, distance_m) VALUES (?, ?, ?, ?, ?, ?)'
+			'INSERT INTO spectator_points (id, name, comment, lat, lon, distance_m, distance_m_2) VALUES (?, ?, ?, ?, ?, ?, ?)'
 		)
-		.bind(id, body.name ?? '', body.comment ?? '', body.lat, body.lon, body.distance_m)
+		.bind(
+			id,
+			body.name ?? '',
+			body.comment ?? '',
+			body.lat,
+			body.lon,
+			body.distance_m,
+			body.distance_m_2 ?? null
+		)
 		.run();
 
 	return Response.json({ id, ...body }, { status: 201 });

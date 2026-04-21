@@ -5,6 +5,7 @@ export type SpectatorPoint = {
 	lat: number;
 	lon: number;
 	distance_m: number;
+	distance_m_2?: number | null;
 };
 
 class PointsStore {

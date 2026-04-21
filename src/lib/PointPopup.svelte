@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { runner1, runner2, formatTime } from './runners.svelte.js';
 	import type { SpectatorPoint } from './spectatorPoints.svelte.js';
 
@@ -14,15 +15,16 @@
 		onDelete: () => void;
 	} = $props();
 
-	let name = $state(point.name);
-	let comment = $state(point.comment);
+	let name = $state(untrack(() => point.name));
+	let comment = $state(untrack(() => point.comment));
 	let deleting = $state(false);
 
-	function arrivalFor(runner: typeof runner1): string {
+	const hasTwoCrossings = $derived(point.distance_m_2 != null);
+
+	function arrivalAt(distM: number, runner: typeof runner1): string {
 		if (!runner.isValid) return '—';
-		if (point.distance_m >= 42195) return 'Finished';
-		const secs = runner.startSeconds + point.distance_m * runner.pacePerMetre;
-		return formatTime(secs);
+		if (distM >= 42195) return 'Finished';
+		return formatTime(runner.startSeconds + distM * runner.pacePerMetre);
 	}
 
 	function handleDelete() {
@@ -73,21 +75,45 @@
 		"
 	></textarea>
 
-	<!-- Runner arrival times -->
+	<!-- Arrival times -->
 	<div style="
 		background:#f8fafc; border-radius:6px;
 		padding:6px 10px; margin-bottom:8px;
-		display:flex; flex-direction:column; gap:4px;
 	">
-		{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
-			<div style="display:flex; justify-content:space-between; align-items:center">
-				<span style="font-size:11px; color:{color}; font-weight:600">{r.name}</span>
-				<span style="
-					font-size:11px; font-weight:700; color:#1e293b;
-					font-variant-numeric:tabular-nums;
-				">{arrivalFor(r)}</span>
+		{#if hasTwoCrossings}
+			<!-- Two-crossing grid: runner | 1st | 2nd -->
+			<div style="
+				display:grid; grid-template-columns:1fr auto auto;
+				gap:2px 10px; align-items:center;
+			">
+				<!-- Header row -->
+				<div></div>
+				<span style="font-size:9px; font-weight:700; color:#94a3b8; text-align:right; letter-spacing:0.05em">1ST</span>
+				<span style="font-size:9px; font-weight:700; color:#94a3b8; text-align:right; letter-spacing:0.05em">2ND</span>
+				<!-- Runner rows -->
+				{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
+					<span style="font-size:11px; color:{color}; font-weight:600">{r.name}</span>
+					<span style="font-size:11px; font-weight:700; color:#1e293b; font-variant-numeric:tabular-nums; text-align:right">
+						{arrivalAt(point.distance_m, r)}
+					</span>
+					<span style="font-size:11px; font-weight:700; color:#1e293b; font-variant-numeric:tabular-nums; text-align:right">
+						{arrivalAt(point.distance_m_2!, r)}
+					</span>
+				{/each}
 			</div>
-		{/each}
+		{:else}
+			<!-- Single crossing -->
+			<div style="display:flex; flex-direction:column; gap:4px">
+				{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
+					<div style="display:flex; justify-content:space-between; align-items:center">
+						<span style="font-size:11px; color:{color}; font-weight:600">{r.name}</span>
+						<span style="font-size:11px; font-weight:700; color:#1e293b; font-variant-numeric:tabular-nums">
+							{arrivalAt(point.distance_m, r)}
+						</span>
+					</div>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Actions -->
