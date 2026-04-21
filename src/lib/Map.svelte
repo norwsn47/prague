@@ -1,17 +1,24 @@
 <script lang="ts">
+	import { mount, unmount } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
-	import { ROUTE_COORDS, ROUTE_TOTAL_M, positionAtDistance } from './route.js';
+	import { ROUTE_COORDS, ROUTE_TOTAL_M, positionAtDistance, snapToRoute } from './route.js';
 	import { runner1, runner2 } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
+	import { pointsStore, type SpectatorPoint } from './spectatorPoints.svelte.js';
+	import PointPopup from './PointPopup.svelte';
 
 	let mapEl: HTMLDivElement;
 	let mapLoaded = $state(false);
 
-	// Held outside $state — Leaflet objects aren't serialisable
 	let L: typeof import('leaflet');
 	let map: import('leaflet').Map;
 	let marker1: import('leaflet').Marker | null = null;
 	let marker2: import('leaflet').Marker | null = null;
+
+	// Spectator point tracking — id → Leaflet marker
+	const spectatorMarkers = new Map<string, import('leaflet').Marker>();
+	// Mounted Svelte popup instances — id → { instance, container }
+	const popupInstances = new Map<string, { instance: Record<string, unknown>; container: HTMLDivElement }>();
 
 	// 'start-finish' = dark navy pill; 'km' = white pill with subtle border
 	function distanceIcon(label: string, variant: 'start-finish' | 'km'): import('leaflet').DivIcon {
@@ -50,6 +57,23 @@
 			">${initial}</div>`,
 			iconSize: [28, 28],
 			iconAnchor: [14, 14],
+		});
+	}
+
+	function spectatorIcon(letter: string): import('leaflet').DivIcon {
+		return L.divIcon({
+			className: '',
+			html: `<div style="
+				width:24px;height:24px;border-radius:50%;
+				background:#f59e0b;border:2.5px solid white;
+				box-shadow:0 2px 6px rgba(0,0,0,0.30);
+				display:flex;align-items:center;justify-content:center;
+				color:white;font-weight:700;font-size:11px;
+				font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+				transform:translate(-50%,-50%);
+			">${letter}</div>`,
+			iconSize: [0, 0],
+			iconAnchor: [0, 0],
 		});
 	}
 
@@ -109,10 +133,117 @@
 		}
 	}
 
+	function openPointPopup(point: SpectatorPoint) {
+		const marker = spectatorMarkers.get(point.id);
+		if (!marker) return;
+
+		// Unmount any existing popup for this point
+		const prev = popupInstances.get(point.id);
+		if (prev) {
+			unmount(prev.instance);
+			popupInstances.delete(point.id);
+		}
+
+		const letter = pointsStore.letterFor(point.id);
+		const container = document.createElement('div');
+		const instance = mount(PointPopup, {
+			target: container,
+			props: {
+				point,
+				letter,
+				onSave: (name: string, comment: string) => pointsStore.update(point.id, name, comment),
+				onDelete: () => pointsStore.delete(point.id),
+			},
+		}) as Record<string, unknown>;
+		popupInstances.set(point.id, { instance, container });
+
+		marker.bindPopup(
+			L.popup({ minWidth: 254, maxWidth: 280, className: 'spectator-popup' }).setContent(container)
+		);
+		marker.openPopup();
+
+		if (pointsStore.openPopupId !== point.id) {
+			pointsStore.openPopupId = point.id;
+		}
+	}
+
+	function addSpectatorMarker(id: string, lat: number, lon: number, letter: string) {
+		const marker = L.marker([lat, lon], {
+			icon: spectatorIcon(letter),
+			zIndexOffset: 900,
+		}).addTo(map);
+
+		marker.on('click', () => {
+			const point = pointsStore.list.find((p) => p.id === id);
+			if (point) openPointPopup(point);
+		});
+
+		marker.on('popupclose', () => {
+			if (pointsStore.openPopupId === id) pointsStore.openPopupId = null;
+			const inst = popupInstances.get(id);
+			if (inst) {
+				unmount(inst.instance);
+				popupInstances.delete(id);
+			}
+		});
+
+		spectatorMarkers.set(id, marker);
+		return marker;
+	}
+
+	function syncSpectatorMarkers() {
+		const sorted = pointsStore.sorted;
+		const currentIds = new Set(sorted.map((p) => p.id));
+
+		// Remove deleted markers
+		for (const [id, marker] of spectatorMarkers) {
+			if (!currentIds.has(id)) {
+				marker.closePopup();
+				marker.remove();
+				spectatorMarkers.delete(id);
+				const inst = popupInstances.get(id);
+				if (inst) { unmount(inst.instance); popupInstances.delete(id); }
+			}
+		}
+
+		// Add new markers; update icon (letter) for existing ones
+		for (const [i, point] of sorted.entries()) {
+			const letter = String.fromCharCode(65 + i);
+			if (!spectatorMarkers.has(point.id)) {
+				addSpectatorMarker(point.id, point.lat, point.lon, letter);
+			} else {
+				spectatorMarkers.get(point.id)!.setIcon(spectatorIcon(letter));
+			}
+		}
+	}
+
+	// Sync runner markers to timeState
 	$effect(() => {
 		if (!mapLoaded) return;
 		syncMarker(runner1, marker1, runner1.hexColor, (m) => { marker1 = m; });
 		syncMarker(runner2, marker2, runner2.hexColor, (m) => { marker2 = m; });
+	});
+
+	// Sync spectator markers when list changes
+	$effect(() => {
+		if (!mapLoaded) return;
+		void pointsStore.sorted; // establish reactivity
+		syncSpectatorMarkers();
+	});
+
+	// Open popup when openPopupId is set externally (e.g. from elevation strip)
+	$effect(() => {
+		if (!mapLoaded) return;
+		const id = pointsStore.openPopupId;
+		if (!id) return;
+		const marker = spectatorMarkers.get(id);
+		if (marker && !marker.isPopupOpen()) {
+			const point = pointsStore.list.find((p) => p.id === id);
+			if (point) {
+				map.panTo(marker.getLatLng());
+				openPointPopup(point);
+			}
+		}
 	});
 
 	onMount(async () => {
@@ -145,7 +276,7 @@
 			}).addTo(map);
 		}
 
-		// Direction arrows every 1 km — ~41 lightweight SVG markers
+		// Direction arrows every 1 km
 		const ARROW_INTERVAL_M = 1000;
 		for (let d = ARROW_INTERVAL_M; d < ROUTE_TOTAL_M - 200; d += ARROW_INTERVAL_M) {
 			const [lon1, lat1] = positionAtDistance(d);
@@ -157,12 +288,45 @@
 		const bounds = L.latLngBounds(latLngs);
 		map.fitBounds(bounds, { padding: [20, 20] });
 
+		// Map click → create spectator point if within 50 m of route
+		map.on('click', async (e: import('leaflet').LeafletMouseEvent) => {
+			const snap = snapToRoute(e.latlng.lng, e.latlng.lat);
+			if (snap.perpDistM > 50) return;
+
+			const created = await pointsStore.create({
+				name: '',
+				comment: '',
+				lat: snap.position[1],
+				lon: snap.position[0],
+				distance_m: snap.distanceM,
+			});
+
+			if (!created) return;
+
+			// Manually add marker immediately (before the $effect runs)
+			const letter = pointsStore.letterFor(created.id);
+			if (!spectatorMarkers.has(created.id)) {
+				addSpectatorMarker(created.id, created.lat, created.lon, letter);
+			}
+			openPointPopup(created);
+		});
+
 		mapLoaded = true;
+
+		// Load persisted spectator points
+		await pointsStore.load();
 	});
 
 	onDestroy(() => {
+		for (const inst of popupInstances.values()) unmount(inst.instance);
 		map?.remove();
 	});
 </script>
 
 <div bind:this={mapEl} class="w-full h-full"></div>
+
+<style>
+	:global(.spectator-popup .leaflet-popup-content) {
+		margin: 10px 12px;
+	}
+</style>

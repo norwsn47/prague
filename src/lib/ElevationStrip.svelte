@@ -3,6 +3,7 @@
 	import { ROUTE_TOTAL_M } from './route.js';
 	import { runner1, runner2 } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
+	import { pointsStore } from './spectatorPoints.svelte.js';
 
 	type ElePoint = { distanceKm: number; elevationM: number };
 
@@ -77,7 +78,6 @@
 		dotYPct: number;
 		label: string;
 		labelTopPx: number;
-		/** CSS transform for label — shifts based on position to avoid edge clipping */
 		labelTransform: string;
 	};
 
@@ -195,16 +195,10 @@
 
 	<!--
 		Runner marker overlay — HTML elements to avoid SVG text/shape distortion.
-
-		For each runner:
-		  1. Thin vertical guide line: full height from top-0 to the runner's dot.
-		     The pinned label (with white background) visually covers the line's top.
-		  2. Pinned label: fixed y position (Will=4px, Maggie=26px) — never moves vertically.
-		  3. Dot: at the runner's actual (distanceKm, elevationM) position.
 	-->
 	<div class="absolute inset-x-0 top-0 pointer-events-none" style="height: calc(100% - 24px)">
 		{#each runnerMarkers as m}
-			<!-- Guide line from top:0 to the dot — label sits on top with white bg -->
+			<!-- Guide line from top:0 to the dot -->
 			<div style="
 				position:absolute;
 				left:{m.xPct}%;
@@ -247,7 +241,50 @@
 				box-shadow:0 1px 4px rgba(15,23,42,0.10);
 			">{m.label}</div>
 		{/each}
+
+		<!-- Spectator point dashed lines (non-interactive) -->
+		{#each pointsStore.sorted as point}
+			{@const xPct = (point.distance_m / ROUTE_TOTAL_M) * 100}
+			<div style="
+				position:absolute;
+				left:{xPct}%;
+				top:0;
+				width:1px;
+				height:100%;
+				transform:translateX(-50%);
+				background:repeating-linear-gradient(to bottom, #f59e0b 0px, #f59e0b 3px, transparent 3px, transparent 7px);
+				opacity:0.55;
+			"></div>
+		{/each}
 	</div>
+
+	<!-- Spectator point letter badges — clickable, rendered above x-axis labels -->
+	{#each pointsStore.sorted as point, i}
+		{@const xPct = (point.distance_m / ROUTE_TOTAL_M) * 100}
+		{@const letter = String.fromCharCode(65 + i)}
+		{@const shift = xPct < 5 ? 'translateX(0)' : xPct > 95 ? 'translateX(-100%)' : 'translateX(-50%)'}
+		<button
+			onclick={() => { pointsStore.openPopupId = point.id; }}
+			title="{letter}{point.name ? ` — ${point.name}` : ''}"
+			style="
+				position:absolute;
+				left:{xPct}%;
+				bottom:2px;
+				transform:{shift};
+				width:16px; height:16px;
+				border-radius:50%;
+				background:#f59e0b;
+				border:1.5px solid white;
+				box-shadow:0 1px 3px rgba(0,0,0,0.20);
+				color:white;
+				font-size:9px; font-weight:700;
+				display:flex; align-items:center; justify-content:center;
+				cursor:pointer;
+				font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+				padding:0;
+			"
+		>{letter}</button>
+	{/each}
 
 	<!-- X-axis distance labels -->
 	<div class="absolute bottom-0 left-0 right-0 h-6">

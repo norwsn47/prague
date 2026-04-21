@@ -597,6 +597,40 @@ export function positionAtDistance(distanceM: number): [number, number] {
 	return [lon1 + t * (lon2 - lon1), lat1 + t * (lat2 - lat1)];
 }
 
+/** Snap a click [lon, lat] to the nearest route point.
+ *  Returns the snapped [lon, lat], route distance in metres, and
+ *  the perpendicular distance from the click to the route in metres.
+ */
+export function snapToRoute(
+	clickLon: number,
+	clickLat: number
+): { position: [number, number]; distanceM: number; perpDistM: number } {
+	let bestPerpM = Infinity;
+	let bestDistM = 0;
+	let bestPos: [number, number] = ROUTE_COORDS[0];
+
+	for (let i = 0; i < ROUTE_COORDS.length - 1; i++) {
+		const [x1, y1] = ROUTE_COORDS[i];
+		const [x2, y2] = ROUTE_COORDS[i + 1];
+		const dx = x2 - x1;
+		const dy = y2 - y1;
+		const len2 = dx * dx + dy * dy;
+		const t = len2 === 0 ? 0 : Math.max(0, Math.min(1,
+			((clickLon - x1) * dx + (clickLat - y1) * dy) / len2
+		));
+		const px = x1 + t * dx;
+		const py = y1 + t * dy;
+		const perpM = haversine([clickLon, clickLat], [px, py]);
+		if (perpM < bestPerpM) {
+			bestPerpM = perpM;
+			bestDistM = ROUTE_DISTANCES[i] + t * haversine(ROUTE_COORDS[i], ROUTE_COORDS[i + 1]);
+			bestPos = [px, py];
+		}
+	}
+
+	return { position: bestPos, distanceM: bestDistM, perpDistM: bestPerpM };
+}
+
 /** Return distance in metres along the route to the nearest point from a [lon, lat] */
 export function nearestRouteDistance([lon, lat]: [number, number]): number {
 	let best = Infinity;
