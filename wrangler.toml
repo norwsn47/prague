@@ -6,4 +6,4 @@ pages_build_output_dir = ".svelte-kit/cloudflare"
 [[d1_databases]]
 binding = "DB"
 database_name = "prague-spectator"
-database_id = "YOUR_DATABASE_ID_HERE"
+database_id = "ea11b327-843c-4807-9e45-fd50eb8dbbb7"
