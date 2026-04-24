@@ -604,54 +604,77 @@ export type SnapCandidate = {
 };
 
 /**
- * Find all route segments within `toleranceM` metres of the click.
- * Returns up to 2 candidates after deduplicating segments that are
- * within 200 m of each other along the route (keeping the nearest one).
- * Results are ordered by route distance (first crossing first).
+ * Find up to 2 route crossings near a click point.
+ *
+ * Strategy:
+ *   1. Snap the click to the nearest route segment within `toleranceM` → primary.
+ *   2. Search the entire route for any segment within SECONDARY_RADIUS_M of the
+ *      primary snap position that is at least MIN_SEPARATION_M away along the
+ *      route → secondary (the "return pass" on the same road).
+ *
+ * Using the snap position (not the raw click) for the secondary search means we
+ * catch return passes on parallel roads even when the user clicks closer to one
+ * side than the other.
  */
+const SECONDARY_RADIUS_M = 150;  // search radius around primary snap point
+const MIN_SEPARATION_M   = 3000; // min along-route gap to count as a separate crossing
+
 export function findAllSnapCandidates(
 	clickLon: number,
 	clickLat: number,
 	toleranceM: number
 ): SnapCandidate[] {
-	const raw: SnapCandidate[] = [];
+	// ── Step 1: find primary (nearest segment to click) ──────────────────────
+	let primary: SnapCandidate | null = null;
 
 	for (let i = 0; i < ROUTE_COORDS.length - 1; i++) {
 		const [x1, y1] = ROUTE_COORDS[i];
 		const [x2, y2] = ROUTE_COORDS[i + 1];
-		const dx = x2 - x1;
-		const dy = y2 - y1;
+		const dx = x2 - x1, dy = y2 - y1;
 		const len2 = dx * dx + dy * dy;
 		const t = len2 === 0 ? 0 : Math.max(0, Math.min(1,
 			((clickLon - x1) * dx + (clickLat - y1) * dy) / len2
 		));
-		const px = x1 + t * dx;
-		const py = y1 + t * dy;
+		const px = x1 + t * dx, py = y1 + t * dy;
 		const perpM = haversine([clickLon, clickLat], [px, py]);
-		if (perpM <= toleranceM) {
-			raw.push({
+		if (perpM <= toleranceM && (!primary || perpM < primary.perpDistM)) {
+			primary = {
 				position: [px, py],
 				distanceM: ROUTE_DISTANCES[i] + t * haversine(ROUTE_COORDS[i], ROUTE_COORDS[i + 1]),
 				perpDistM: perpM,
-			});
+			};
 		}
 	}
 
-	// Sort by route distance
-	raw.sort((a, b) => a.distanceM - b.distanceM);
+	if (!primary) return [];
 
-	// Merge candidates within 200 m of each other along the route (keep nearest)
-	const merged: SnapCandidate[] = [];
-	for (const c of raw) {
-		const last = merged[merged.length - 1];
-		if (last && c.distanceM - last.distanceM < 200) {
-			if (c.perpDistM < last.perpDistM) merged[merged.length - 1] = c;
-		} else {
-			merged.push(c);
+	// ── Step 2: find secondary (another crossing near the snap position) ─────
+	const [snapLon, snapLat] = primary.position;
+	let secondary: SnapCandidate | null = null;
+
+	for (let i = 0; i < ROUTE_COORDS.length - 1; i++) {
+		const [x1, y1] = ROUTE_COORDS[i];
+		const [x2, y2] = ROUTE_COORDS[i + 1];
+		const dx = x2 - x1, dy = y2 - y1;
+		const len2 = dx * dx + dy * dy;
+		const t = len2 === 0 ? 0 : Math.max(0, Math.min(1,
+			((snapLon - x1) * dx + (snapLat - y1) * dy) / len2
+		));
+		const px = x1 + t * dx, py = y1 + t * dy;
+		const perpM = haversine([snapLon, snapLat], [px, py]);
+		if (perpM > SECONDARY_RADIUS_M) continue;
+
+		const distM = ROUTE_DISTANCES[i] + t * haversine(ROUTE_COORDS[i], ROUTE_COORDS[i + 1]);
+		if (Math.abs(distM - primary.distanceM) < MIN_SEPARATION_M) continue;
+
+		if (!secondary || perpM < secondary.perpDistM) {
+			secondary = { position: [px, py], distanceM: distM, perpDistM: perpM };
 		}
 	}
 
-	return merged.slice(0, 2);
+	const results = secondary ? [primary, secondary] : [primary];
+	results.sort((a, b) => a.distanceM - b.distanceM);
+	return results;
 }
 
 /** Snap a click [lon, lat] to the nearest route point.
