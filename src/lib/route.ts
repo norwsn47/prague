@@ -616,7 +616,7 @@ export type SnapCandidate = {
  * catch return passes on parallel roads even when the user clicks closer to one
  * side than the other.
  */
-const SECONDARY_RADIUS_M = 150;  // search radius around primary snap point
+const SECONDARY_RADIUS_M = 200;  // search radius around primary snap point
 const MIN_SEPARATION_M   = 3000; // min along-route gap to count as a separate crossing
 
 export function findAllSnapCandidates(

@@ -261,7 +261,7 @@
 		// Click near route → create spectator point
 		map.on('click', async (e: import('leaflet').LeafletMouseEvent) => {
 			if (pointsStore.openPopupId !== null || justClosedPopup) return;
-			const candidates = findAllSnapCandidates(e.latlng.lng, e.latlng.lat, 50);
+			const candidates = findAllSnapCandidates(e.latlng.lng, e.latlng.lat, 100);
 			if (candidates.length === 0) return;
 
 			const nearest = candidates.reduce((a, b) => a.perpDistM < b.perpDistM ? a : b);
