@@ -104,11 +104,15 @@
 			</div>
 			<RunnerPanel sidebar />
 
-			<!-- Spectator points list — shown when any points exist -->
+			<!-- Spectator points section — heading always visible -->
+			<div style="border-top:1px solid var(--border-s); padding:16px 24px 6px">
+				<p class="label-caps">Spectator Points</p>
+				<p style="margin:4px 0 0; font-size:11px; color:var(--t3); line-height:1.4">
+					Click anywhere along the route to add a viewing spot.
+				</p>
+			</div>
+
 			{#if pointsStore.sorted.length > 0}
-				<div style="border-top:1px solid var(--border-s); padding:16px 24px 8px">
-					<p class="label-caps">Spectator Points</p>
-				</div>
 				<div style="margin-bottom:8px">
 					{#each pointsStore.sorted as point, i}
 						{@const letter = String.fromCharCode(65 + i)}
