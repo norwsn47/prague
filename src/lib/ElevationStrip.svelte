@@ -105,13 +105,14 @@
 		const { minE, range, profileMaxKm } = elevStats;
 
 		const defs = [
-			{ runner: runner1, name: 'Will',   color: '#4d7a5f', borderColor: '#a8c4b4', labelTopPx: 4  },
-			{ runner: runner2, name: 'Maggie', color: '#9e6080', borderColor: '#c4a8b8', labelTopPx: 26 },
+			{ runner: runner1, borderColor: '#a8c4b4', labelTopPx: 4  },
+			{ runner: runner2, borderColor: '#c4a8b8', labelTopPx: 26 },
 		];
 
 		return defs
 			.filter(d => d.runner.isValid)
-			.map(({ runner, name, color, borderColor, labelTopPx }): Marker => {
+			.map(({ runner, borderColor, labelTopPx }): Marker => {
+				const { name, hexColor: color } = runner;
 				const elapsed = timeState.current - runner.startSeconds;
 				const distM = elapsed < 0 ? 0 : Math.min(elapsed / runner.pacePerMetre, 42195);
 				const distKm = distM / 1000;

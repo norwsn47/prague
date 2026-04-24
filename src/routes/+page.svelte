@@ -4,8 +4,9 @@
 	import RunnerPanel from '$lib/RunnerPanel.svelte';
 	import TimeSlider from '$lib/TimeSlider.svelte';
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
-	import { runner1, runner2, formatTime } from '$lib/runners.svelte.js';
-	import { pointsStore, type SpectatorPoint } from '$lib/spectatorPoints.svelte.js';
+	import { runner1, runner2 } from '$lib/runners.svelte.js';
+	import { pointsStore } from '$lib/spectatorPoints.svelte.js';
+	import { buildArrivalRows, kmLabel } from '$lib/arrivalRows.js';
 
 	onMount(async () => {
 		// pointsStore.load() fetches both /api/points and /api/settings in parallel;
@@ -44,35 +45,6 @@
 		return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : t;
 	}
 
-	function kmLabel(distM: number): string {
-		return (distM / 1000).toFixed(1) + ' km';
-	}
-
-	function pointRows(point: SpectatorPoint) {
-		const distances = point.distance_m_2 != null
-			? [point.distance_m, point.distance_m_2]
-			: [point.distance_m];
-		const runners = [
-			{ r: runner1, color: '#4d7a5f', idx: 0 },
-			{ r: runner2, color: '#9e6080', idx: 1 },
-		];
-		const all: { key: string; name: string; color: string; distM: number; arrivalSecs: number; arrivalStr: string }[] = [];
-		for (const [di, distM] of distances.entries()) {
-			for (const { r, color, idx: ri } of runners) {
-				if (!r.isValid) continue;
-				const arrivalSecs = r.startSeconds + distM * r.pacePerMetre;
-				all.push({
-					key: `${di}-${ri}`,
-					name: r.name,
-					color,
-					distM,
-					arrivalSecs: distM >= 42195 ? Infinity : arrivalSecs,
-					arrivalStr: distM >= 42195 ? 'finished' : formatTime(arrivalSecs),
-				});
-			}
-		}
-		return all.sort((a, b) => a.arrivalSecs - b.arrivalSecs);
-	}
 </script>
 
 <div class="h-dvh flex flex-col lg:flex-row overflow-hidden" style="background:var(--bg)">
@@ -119,7 +91,7 @@
 						{@const isFirst = i === 0}
 						{@const isLast = i === pointsStore.sorted.length - 1}
 						{@const isExpanded = expandedIds.has(point.id)}
-						{@const rows = pointRows(point)}
+						{@const rows = buildArrivalRows(point)}
 						<div class="sp-row">
 							<!-- Main row -->
 							<div style="display:flex; align-items:center; gap:8px; padding:6px 12px 6px 24px">
@@ -205,12 +177,6 @@
 			{/if}
 		</div>
 
-		<!-- Desktop hint -->
-		<div class="shrink-0 px-6 py-3" style="border-top:1px solid var(--border-s)">
-			<p style="font-size:11px; color:var(--t3); text-align:center; margin:0">
-				Click near the route to add a marker
-			</p>
-		</div>
 	</aside>
 
 	<!-- ── RIGHT / MAIN CONTENT ────────────────────────────────────────────── -->

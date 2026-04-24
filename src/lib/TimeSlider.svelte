@@ -41,7 +41,6 @@
 		max={max}
 		step={60}
 		bind:value={timeState.current}
-		class="compact-slider"
 		style="
 			flex:1; min-width:0;
 			height:3px; border-radius:99px;

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { mount, unmount } from 'svelte';
-	import { onMount, onDestroy } from 'svelte';
+	import { mount, unmount, onMount, onDestroy } from 'svelte';
 	import { ROUTE_COORDS, ROUTE_TOTAL_M, positionAtDistance, findAllSnapCandidates } from './route.js';
 	import { runner1, runner2 } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { runner1, runner2, formatTime } from './runners.svelte.js';
-	import type { SpectatorPoint } from './spectatorPoints.svelte.js';
-	import { pointsStore } from './spectatorPoints.svelte.js';
+	import { pointsStore, type SpectatorPoint } from './spectatorPoints.svelte.js';
+	import { buildArrivalRows, kmLabel } from './arrivalRows.js';
 
 	let {
 		point,
@@ -20,51 +19,7 @@
 	let comment  = $state(untrack(() => point.comment));
 	let deleting = $state(false);
 
-	const distances = $derived(
-		point.distance_m_2 != null
-			? [point.distance_m, point.distance_m_2]
-			: [point.distance_m]
-	);
-
-	const runners = [
-		{ r: runner1, color: '#4d7a5f', idx: 0 },
-		{ r: runner2, color: '#9e6080', idx: 1 },
-	];
-
-	type Row = {
-		key: string;
-		name: string;
-		color: string;
-		distM: number;
-		arrivalSecs: number;
-		arrivalStr: string;
-	};
-
-	const rows = $derived.by((): Row[] => {
-		const all: Row[] = [];
-		for (const [di, distM] of distances.entries()) {
-			for (const { r, color, idx: ri } of runners) {
-				if (!r.isValid) continue;
-				const elapsed = distM * r.pacePerMetre;
-				const arrivalSecs = r.startSeconds + elapsed;
-				all.push({
-					key: `${di}-${ri}`,
-					name: r.name,
-					color,
-					distM,
-					arrivalSecs: distM >= 42195 ? Infinity : arrivalSecs,
-					arrivalStr: distM >= 42195
-						? 'finished'
-						: formatTime(arrivalSecs),
-				});
-			}
-		}
-		return all.sort((a, b) => a.arrivalSecs - b.arrivalSecs);
-	});
-
-	function kmLabel(distM: number): string {
-		return (distM / 1000).toFixed(1) + ' km';
-	}
+	const rows = $derived(buildArrivalRows(point));
 </script>
 
 <div style="
