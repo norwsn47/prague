@@ -45,7 +45,7 @@
 	<div style="display:flex; align-items:center; gap:8px; margin-bottom:9px">
 		<span style="
 			width:22px; height:22px; border-radius:50%; flex-shrink:0;
-			background:#f59e0b; color:white;
+			background:#4D8898; color:white;
 			display:flex; align-items:center; justify-content:center;
 			font-size:11px; font-weight:700;
 		">{letter}</span>
@@ -56,9 +56,9 @@
 			onblur={() => onSave(name, comment)}
 			style="
 				flex:1; min-width:0; box-sizing:border-box; width:100%;
-				border:1.5px solid #e2e8f0; border-radius:6px;
-				padding:5px 8px; font-size:12px; color:#111827;
-				outline:none; background:#f8fafc; font-family:inherit;
+				border:1.5px solid #E0E0E0; border-radius:6px;
+				padding:5px 8px; font-size:12px; color:#2C2C2C;
+				outline:none; background:#F5F6F4; font-family:inherit;
 			"
 		/>
 	</div>
@@ -71,9 +71,9 @@
 		onblur={() => onSave(name, comment)}
 		style="
 			display:block; width:100%; box-sizing:border-box;
-			border:1.5px solid #e2e8f0; border-radius:6px;
-			padding:5px 8px; font-size:11px; color:#374151;
-			resize:none; outline:none; background:#f8fafc;
+			border:1.5px solid #E0E0E0; border-radius:6px;
+			padding:5px 8px; font-size:11px; color:#2C2C2C;
+			resize:none; outline:none; background:#F5F6F4;
 			font-family:inherit; margin-bottom:10px;
 		"
 	></textarea>
@@ -81,21 +81,21 @@
 	<!-- Arrival times: one block per distance -->
 	{#each distances as distM, i}
 		<div style="
-			background:#f8fafc; border-radius:6px; padding:7px 10px;
+			background:#F5F6F4; border-radius:6px; padding:7px 10px;
 			{i < distances.length - 1 ? 'margin-bottom:6px' : 'margin-bottom:10px'};
 		">
 			<!-- Distance label -->
 			<div style="
 				font-size:9px; font-weight:700; letter-spacing:0.07em;
-				text-transform:uppercase; color:#94a3b8; margin-bottom:5px;
+				text-transform:uppercase; color:#9E9E9E; margin-bottom:5px;
 			">{distances.length > 1 ? `At ${kmLabel(distM)}` : `Distance: ${kmLabel(distM)}`}</div>
 
 			<!-- Runner rows -->
-			{#each [{ r: runner1, color: '#15803d' }, { r: runner2, color: '#ec4899' }] as { r, color }}
+			{#each [{ r: runner1, color: '#4d7a5f' }, { r: runner2, color: '#9e6080' }] as { r, color }}
 				<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px">
 					<span style="font-size:11px; font-weight:600; color:{color}">{r.name}</span>
 					<span style="
-						font-size:12px; font-weight:700; color:#0f172a;
+						font-size:12px; font-weight:700; color:#2C2C2C;
 						font-variant-numeric:tabular-nums; font-family:inherit;
 					">{arrivalAt(distM, r)}</span>
 				</div>
@@ -112,7 +112,6 @@
 			style="
 				display:flex; align-items:center; gap:5px;
 				color:#4285F4; font-size:11px; font-weight:500;
-				text-decoration:underline; text-underline-offset:2px;
 			"
 		>
 			<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
@@ -125,7 +124,7 @@
 			disabled={deleting}
 			style="
 				padding:5px; background:none; border:none;
-				color:{deleting ? '#94a3b8' : '#dc2626'};
+				color:{deleting ? '#E0E0E0' : '#9E9E9E'};
 				cursor:{deleting ? 'default' : 'pointer'};
 				display:flex; align-items:center; justify-content:center;
 			"

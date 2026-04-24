@@ -2,41 +2,41 @@
 
 /* ─── Design tokens ────────────────────────────────────────────────────────── */
 :root {
-  --font:      -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Code", monospace;
+  --font:      -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
 
   /* Backgrounds */
-  --bg:        #f4f3ef;   /* warm off-white page bg */
-  --sidebar:   #fafaf8;   /* sidebar surface */
-  --surface:   #ffffff;   /* card / input surface */
-  --dark-1:    #0f172a;   /* sidebar header / primary dark band */
-  --dark-2:    #1e293b;   /* elevation header / secondary dark band */
+  --bg:        #F5F6F4;   /* Off-White page bg */
+  --sidebar:   #FFFFFF;   /* sidebar surface */
+  --surface:   #FFFFFF;   /* card / input surface */
+  --dark-1:    #6AA0B0;   /* header bar / Ocean Header */
+  --dark-2:    #F5F6F4;   /* section header band / Off-White */
 
   /* Text */
-  --t1: #111827;   /* primary */
-  --t2: #64748b;   /* secondary */
-  --t3: #94a3b8;   /* muted */
-  --ti: #f8fafc;   /* inverse (on dark) */
+  --t1: #2C2C2C;   /* primary — Charcoal */
+  --t2: #9E9E9E;   /* secondary — Medium Grey */
+  --t3: #9E9E9E;   /* muted — Medium Grey */
+  --ti: #FFFFFF;   /* inverse (on dark) */
 
-  /* Accent (blue-purple) */
-  --accent:       #4f46e5;
-  --accent-soft:  #eef2ff;
-  --accent-dark:  #818cf8;   /* accent on dark background */
+  /* Ocean palette */
+  --accent:       #4D8898;              /* Primary */
+  --accent-soft:  rgba(77,136,152,0.15); /* Tint Wash */
+  --accent-dark:  rgba(255,255,255,0.75); /* subdued label on header */
 
   /* Borders */
-  --border:  #e2e8f0;
-  --border-s: #f1f5f9;   /* subtle */
+  --border:   #E0E0E0;   /* Light Grey */
+  --border-s: #EEEEEE;   /* subtle separator */
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(15,23,42,0.05);
-  --shadow-sm: 0 1px 4px rgba(15,23,42,0.07), 0 2px 8px rgba(15,23,42,0.04);
-  --shadow-md: 0 4px 20px rgba(15,23,42,0.09);
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.09);
 
   /* Radius */
-  --r-sm:  6px;
-  --r-md:  10px;
-  --r-lg:  16px;
-  --r-xl:  20px;
+  --r-sm:  4px;
+  --r-md:  8px;
+  --r-lg:  12px;
+  --r-xl:  9999px;
 }
 
 /* ─── Global base ───────────────────────────────────────────────────────────── */
@@ -77,7 +77,7 @@ body {
 .app-input {
   display: block;
   width: 100%;
-  background: #f1f5f9;
+  background: #F5F6F4;
   border: 1.5px solid transparent;
   border-radius: var(--r-md);
   padding: 8px 12px;
@@ -97,7 +97,7 @@ body {
   outline: none;
   background: var(--surface);
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+  box-shadow: 0 0 0 3px rgba(77,136,152,0.15);
 }
 
 .app-input::placeholder {
@@ -109,7 +109,7 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: #f1f5f9;
+  background: #F5F6F4;
   border-radius: 99px;
   font-family: var(--font-mono);
   font-size: 11px;

@@ -45,7 +45,7 @@
 		style="
 			flex:1; min-width:0;
 			height:3px; border-radius:99px;
-			background:linear-gradient(to right, var(--accent) {progress}%, #e2e8f0 {progress}%);
+			background:linear-gradient(to right, var(--accent) {progress}%, #E0E0E0 {progress}%);
 			cursor:pointer; appearance:none; -webkit-appearance:none; outline:none;
 		"
 	/>
@@ -80,7 +80,7 @@
 			class="w-full cursor-pointer appearance-none"
 			style="
 				height:3px; border-radius:99px;
-				background:linear-gradient(to right, var(--accent) {progress}%, #e2e8f0 {progress}%);
+				background:linear-gradient(to right, var(--accent) {progress}%, #E0E0E0 {progress}%);
 				accent-color:var(--accent); outline:none;
 			"
 		/>
@@ -102,7 +102,7 @@
 		border-radius: 50%;
 		background: var(--accent);
 		border: 2.5px solid white;
-		box-shadow: 0 1px 4px rgba(79,70,229,0.35);
+		box-shadow: 0 1px 4px rgba(77,136,152,0.35);
 		cursor: pointer;
 	}
 	input[type="range"]::-moz-range-thumb {
@@ -111,7 +111,7 @@
 		border-radius: 50%;
 		background: var(--accent);
 		border: 2.5px solid white;
-		box-shadow: 0 1px 4px rgba(79,70,229,0.35);
+		box-shadow: 0 1px 4px rgba(77,136,152,0.35);
 		cursor: pointer;
 	}
 </style>

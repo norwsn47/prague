@@ -19,12 +19,12 @@
 	const popupInstances = new Map<string, { instance: Record<string, unknown>; container: HTMLDivElement }>();
 
 	function distanceIcon(label: string, variant: 'start-finish' | 'km'): import('leaflet').DivIcon {
-		const bg        = variant === 'start-finish' ? '#0f172a' : '#ffffff';
-		const textColor = variant === 'start-finish' ? '#f8fafc' : '#374151';
-		const border    = variant === 'km' ? '1px solid #e2e8f0' : 'none';
+		const bg        = variant === 'start-finish' ? '#2C2C2C' : '#FFFFFF';
+		const textColor = variant === 'start-finish' ? '#FFFFFF' : '#2C2C2C';
+		const border    = variant === 'km' ? '1px solid #E0E0E0' : 'none';
 		const shadow    = variant === 'start-finish'
-			? '0 2px 8px rgba(15,23,42,0.30),0 1px 2px rgba(15,23,42,0.20)'
-			: '0 1px 4px rgba(15,23,42,0.12),0 1px 2px rgba(15,23,42,0.08)';
+			? '0 2px 8px rgba(0,0,0,0.25),0 1px 2px rgba(0,0,0,0.15)'
+			: '0 1px 4px rgba(0,0,0,0.10),0 1px 2px rgba(0,0,0,0.07)';
 		return L.divIcon({
 			className: '',
 			html: `<div style="display:inline-block;background:${bg};color:${textColor};border:${border};border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;letter-spacing:0.01em;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;white-space:nowrap;box-shadow:${shadow};transform:translate(-50%,-50%)">${label}</div>`,
@@ -33,10 +33,14 @@
 		});
 	}
 
-	function runnerIcon(initial: string, bg: string, offsetRight = false): import('leaflet').DivIcon {
+	function runnerIcon(initial: string, bg: string, offsetRight = false, label = ''): import('leaflet').DivIcon {
+		const circle = `<div style="width:28px;height:28px;border-radius:50%;background:${bg};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;font-family:sans-serif;flex-shrink:0">${initial}</div>`;
+		const tag = label
+			? `<span style="font-size:10px;font-weight:600;color:#2C2C2C;white-space:nowrap;background:#FFFFFF;border-radius:4px;padding:2px 5px;box-shadow:0 1px 3px rgba(0,0,0,0.12);font-family:-apple-system,BlinkMacSystemFont,sans-serif">${label}</span>`
+			: '';
 		return L.divIcon({
 			className: '',
-			html: `<div style="width:28px;height:28px;border-radius:50%;background:${bg};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;font-family:sans-serif">${initial}</div>`,
+			html: `<div style="display:flex;align-items:center;gap:5px">${circle}${tag}</div>`,
 			iconSize: [28, 28],
 			iconAnchor: offsetRight ? [-55, 14] : [14, 14],
 		});
@@ -46,7 +50,7 @@
 	function spectatorIcon(letter: string): import('leaflet').DivIcon {
 		return L.divIcon({
 			className: '',
-			html: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer"><div style="width:26px;height:26px;border-radius:50%;background:#f59e0b;border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.30);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">${letter}</div></div>`,
+			html: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer"><div style="width:26px;height:26px;border-radius:50%;background:#4D8898;border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.20);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">${letter}</div></div>`,
 			iconSize: [32, 32],
 			iconAnchor: [16, 16],
 		});
@@ -55,7 +59,7 @@
 	function arrowIcon(bearingDeg: number): import('leaflet').DivIcon {
 		return L.divIcon({
 			className: '',
-			html: `<svg width="14" height="14" viewBox="0 0 12 12" style="display:block;transform:translate(-50%,-50%)"><g transform="rotate(${bearingDeg},6,6)"><polygon points="6,1 11,11 6,7.5 1,11" fill="#3b82f6" fill-opacity="0.85" stroke="white" stroke-width="1.2" stroke-linejoin="round" stroke-opacity="0.65"/></g></svg>`,
+			html: `<svg width="14" height="14" viewBox="0 0 12 12" style="display:block;transform:translate(-50%,-50%)"><g transform="rotate(${bearingDeg},6,6)"><polygon points="6,1 11,11 6,7.5 1,11" fill="#4D8898" fill-opacity="0.80" stroke="white" stroke-width="1.2" stroke-linejoin="round" stroke-opacity="0.65"/></g></svg>`,
 			iconSize: [0, 0],
 			iconAnchor: [0, 0],
 		});
@@ -70,13 +74,16 @@
 		return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 	}
 
-	function positionForRunner(runner: typeof runner1): { pos: [number, number]; distM: number } | null {
+	function positionForRunner(runner: typeof runner1): { pos: [number, number]; distM: number; status: 'waiting' | 'running' | 'finished' } | null {
 		if (!runner.isValid) return null;
 		const elapsed = timeState.current - runner.startSeconds;
-		if (elapsed < 0) return null;
+		if (elapsed < 0) {
+			const [lon, lat] = positionAtDistance(0);
+			return { pos: [lat, lon], distM: 0, status: 'waiting' };
+		}
 		const distM = Math.min(elapsed / runner.pacePerMetre, 42195);
 		const [lon, lat] = positionAtDistance(distM);
-		return { pos: [lat, lon], distM };
+		return { pos: [lat, lon], distM, status: distM >= 42195 ? 'finished' : 'running' };
 	}
 
 	function syncMarker(
@@ -87,14 +94,15 @@
 	) {
 		const result = positionForRunner(runner);
 		if (!result) { current?.remove(); onUpdate(null); return; }
-		const { pos, distM } = result;
+		const { pos, distM, status } = result;
 		const atBoundary = distM < 300 || distM >= 42000;
+		const label = status === 'waiting' ? 'waiting at start' : status === 'finished' ? 'finished' : '';
 		const initial = runner.name.trim()[0]?.toUpperCase() ?? '?';
 		if (current) {
 			current.setLatLng(pos);
-			current.setIcon(runnerIcon(initial, bg, atBoundary));
+			current.setIcon(runnerIcon(initial, bg, atBoundary, label));
 		} else {
-			const m = L.marker(pos, { icon: runnerIcon(initial, bg, atBoundary), zIndexOffset: 1000 }).addTo(map);
+			const m = L.marker(pos, { icon: runnerIcon(initial, bg, atBoundary, label), zIndexOffset: 1000 }).addTo(map);
 			m.bindTooltip(runner.name, { permanent: false, direction: 'top', offset: [0, -14] });
 			onUpdate(m);
 		}
@@ -217,13 +225,14 @@
 		const spectatorPaneEl = map.createPane('spectatorPane');
 		spectatorPaneEl.style.zIndex = '450';
 
-		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-			maxZoom: 19,
+		L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			subdomains: 'abcd',
+			maxZoom: 20,
 		}).addTo(map);
 
 		const latLngs = ROUTE_COORDS.map(([lon, lat]) => [lat, lon] as [number, number]);
-		L.polyline(latLngs, { color: '#3b82f6', weight: 4, opacity: 0.8 }).addTo(map);
+		L.polyline(latLngs, { color: '#4D8898', weight: 4, opacity: 0.85 }).addTo(map);
 
 		const [sfLon, sfLat] = positionAtDistance(0);
 		L.marker([sfLat, sfLon], { icon: distanceIcon('Start / Finish', 'start-finish'), zIndexOffset: 500 }).addTo(map);

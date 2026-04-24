@@ -42,9 +42,9 @@ export class Runner {
 	}
 }
 
-// Will — dark green; Maggie — pink
-export const runner1 = new Runner('Will',   '#15803d', '3:00:00', '1125');
-export const runner2 = new Runner('Maggie', '#ec4899', '4:55:00', 'F1645');
+// Will — muted sage green; Maggie — muted dusty rose
+export const runner1 = new Runner('Will',   '#4d7a5f', '3:00:00', '1125');
+export const runner2 = new Runner('Maggie', '#9e6080', '4:55:00', 'F1645');
 
 /** Parse "H:MM" or "H:MM:SS" into total seconds */
 export function parseDuration(s: string): number {

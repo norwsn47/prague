@@ -86,8 +86,8 @@
 		const { minE, range, profileMaxKm } = elevStats;
 
 		const defs = [
-			{ runner: runner1, name: 'Will',   color: '#15803d', borderColor: '#86efac', labelTopPx: 4  },
-			{ runner: runner2, name: 'Maggie', color: '#db2777', borderColor: '#f9a8d4', labelTopPx: 26 },
+			{ runner: runner1, name: 'Will',   color: '#4d7a5f', borderColor: '#a8c4b4', labelTopPx: 4  },
+			{ runner: runner2, name: 'Maggie', color: '#9e6080', borderColor: '#c4a8b8', labelTopPx: 26 },
 		];
 
 		return defs
@@ -160,13 +160,13 @@
 		preserveAspectRatio="none"
 		aria-hidden="true"
 	>
-		<rect width="1000" height={AXIS_Y} fill="#fafaf8" />
+		<rect width="1000" height={AXIS_Y} fill="#F5F6F4" />
 
 		{#each [25, 50, 75] as y}
-			<line x1="0" y1={y} x2="1000" y2={y} stroke="#f1f0ec" stroke-width="1" />
+			<line x1="0" y1={y} x2="1000" y2={y} stroke="#EEEEEE" stroke-width="1" />
 		{/each}
 
-		<line x1="0" y1={AXIS_Y} x2="1000" y2={AXIS_Y} stroke="#e2e8f0" stroke-width="1.5" />
+		<line x1="0" y1={AXIS_Y} x2="1000" y2={AXIS_Y} stroke="#E0E0E0" stroke-width="1.5" />
 
 		{#each KM_MARKS as km}
 			<line
@@ -174,20 +174,20 @@
 				y1={TICK_TOP}
 				x2={(km * 1000 / ROUTE_TOTAL_M) * 1000}
 				y2={AXIS_Y}
-				stroke="#e2e8f0"
+				stroke="#E0E0E0"
 				stroke-width="1"
 			/>
 		{/each}
-		<line x1="1000" y1={TICK_TOP} x2="1000" y2={AXIS_Y} stroke="#e2e8f0" stroke-width="1" />
+		<line x1="1000" y1={TICK_TOP} x2="1000" y2={AXIS_Y} stroke="#E0E0E0" stroke-width="1" />
 
 		{#if elevPath}
-			<path d={elevPath.fill} fill="#4f46e5" fill-opacity="0.08" />
-			<path d={elevPath.line} fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linejoin="round" />
+			<path d={elevPath.fill} fill="#4D8898" fill-opacity="0.10" />
+			<path d={elevPath.line} fill="none" stroke="#4D8898" stroke-width="1.5" stroke-linejoin="round" />
 		{:else if loadError}
-			<text x="500" y="52" text-anchor="middle" font-size="11" fill="#f87171"
+			<text x="500" y="52" text-anchor="middle" font-size="11" fill="#9E9E9E"
 				font-family="-apple-system,BlinkMacSystemFont,sans-serif">{loadError}</text>
 		{:else}
-			<text x="500" y="52" text-anchor="middle" font-size="11" fill="#d1d5db"
+			<text x="500" y="52" text-anchor="middle" font-size="11" fill="#9E9E9E"
 				font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-weight="600" letter-spacing="2"
 			>ELEVATION</text>
 		{/if}
@@ -252,7 +252,7 @@
 				width:1px;
 				height:100%;
 				transform:translateX(-50%);
-				background:repeating-linear-gradient(to bottom, #f59e0b 0px, #f59e0b 3px, transparent 3px, transparent 7px);
+				background:repeating-linear-gradient(to bottom, #8AC0BC 0px, #8AC0BC 3px, transparent 3px, transparent 7px);
 				opacity:0.55;
 			"></div>
 		{/each}
@@ -273,7 +273,7 @@
 				transform:{shift};
 				width:16px; height:16px;
 				border-radius:50%;
-				background:#f59e0b;
+				background:#4D8898;
 				border:1.5px solid white;
 				box-shadow:0 1px 3px rgba(0,0,0,0.20);
 				color:white;

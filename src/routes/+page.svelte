@@ -22,13 +22,15 @@
 		class="hidden lg:flex lg:flex-col w-80 xl:w-96 shrink-0 border-r"
 		style="border-color:var(--border); background:var(--sidebar)"
 	>
-		<!-- Dark header band -->
+		<!-- Header bar -->
 		<div class="shrink-0 px-6 py-5" style="background:var(--dark-1)">
 			<p class="label-caps" style="color:var(--accent-dark)">Spectator Planner</p>
 			<h1 class="mt-1.5 text-xl font-bold tracking-tight" style="color:var(--ti); line-height:1.2">
 				Prague Marathon
 			</h1>
 		</div>
+		<!-- 3px Ocean Accent stripe — Outbuild signature detail -->
+		<div class="shrink-0" style="height:3px; background:#8AC0BC"></div>
 
 		<!-- Time of day slider — directly below header -->
 		<div class="shrink-0" style="border-bottom:1px solid var(--border-s); background:var(--surface)">
@@ -52,8 +54,8 @@
 						<tr style="border-bottom:1px solid var(--border-s)">
 							<th style="padding:4px 6px 4px 24px; text-align:left;  color:var(--t3); font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase"></th>
 							<th style="padding:4px 6px; text-align:left;  color:var(--t3); font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">KM</th>
-							<th style="padding:4px 6px; text-align:right; color:#15803d;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Will</th>
-							<th style="padding:4px 6px 4px 6px; text-align:right; color:#ec4899;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Maggie</th>
+							<th style="padding:4px 6px; text-align:right; color:#4d7a5f;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Will</th>
+							<th style="padding:4px 6px 4px 6px; text-align:right; color:#9e6080;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Maggie</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -67,7 +69,7 @@
 									title={point.name || undefined}
 								>
 									<td style="padding:6px 4px 6px 24px">
-										<span style="width:18px;height:18px;border-radius:50%;background:#f59e0b;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center">{letter}</span>
+										<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center">{letter}</span>
 									</td>
 									<td style="padding:6px 4px; color:var(--t2); font-variant-numeric:tabular-nums">
 										{(distM / 1000).toFixed(1)}
@@ -104,7 +106,7 @@
 
 		<!-- Desktop: elevation strip -->
 		<div class="hidden lg:block shrink-0" style="border-top:1px solid var(--border)">
-			<div class="flex items-center px-6 py-2" style="background:var(--dark-2)">
+			<div class="flex items-center px-6 py-2" style="background:var(--surface)">
 				<span class="label-caps" style="color:var(--t3)">Elevation Profile</span>
 			</div>
 			<div class="h-36" style="background:var(--surface)">
