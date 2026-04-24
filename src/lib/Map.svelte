@@ -18,6 +18,9 @@
 	const spectatorMarkers = new Map<string, import('leaflet').Marker>();
 	const popupInstances = new Map<string, { instance: Record<string, unknown>; container: HTMLDivElement }>();
 
+	// Prevents a new point being created on the same click that closes an open popup
+	let justClosedPopup = false;
+
 	function distanceIcon(label: string, variant: 'start-finish' | 'km'): import('leaflet').DivIcon {
 		const bg        = variant === 'start-finish' ? '#2C2C2C' : '#FFFFFF';
 		const textColor = variant === 'start-finish' ? '#FFFFFF' : '#2C2C2C';
@@ -161,6 +164,8 @@
 			if (pointsStore.openPopupId === id) pointsStore.openPopupId = null;
 			const inst = popupInstances.get(id);
 			if (inst) { unmount(inst.instance); popupInstances.delete(id); }
+			justClosedPopup = true;
+			setTimeout(() => { justClosedPopup = false; }, 50);
 		});
 
 		spectatorMarkers.set(id, marker);
@@ -255,6 +260,7 @@
 
 		// Click near route → create spectator point
 		map.on('click', async (e: import('leaflet').LeafletMouseEvent) => {
+			if (pointsStore.openPopupId !== null || justClosedPopup) return;
 			const candidates = findAllSnapCandidates(e.latlng.lng, e.latlng.lat, 50);
 			if (candidates.length === 0) return;
 
