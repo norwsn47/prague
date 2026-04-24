@@ -225,10 +225,9 @@
 		const spectatorPaneEl = map.createPane('spectatorPane');
 		spectatorPaneEl.style.zIndex = '450';
 
-		L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-			subdomains: 'abcd',
-			maxZoom: 20,
+		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			maxZoom: 19,
 		}).addTo(map);
 
 		const latLngs = ROUTE_COORDS.map(([lon, lat]) => [lat, lon] as [number, number]);
@@ -292,5 +291,8 @@
 <style>
 	:global(.spectator-popup .leaflet-popup-content) {
 		margin: 10px 12px;
+	}
+	:global(.leaflet-tile-pane) {
+		filter: grayscale(100%);
 	}
 </style>
