@@ -15,6 +15,11 @@
 		expandedIds = next;
 	}
 
+	function shortFinish(t: string): string {
+		const parts = t.split(':');
+		return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : t;
+	}
+
 	function kmLabel(distM: number): string {
 		return (distM / 1000).toFixed(1) + ' km';
 	}
@@ -181,27 +186,30 @@
 	</aside>
 
 	<!-- ── RIGHT / MAIN CONTENT ────────────────────────────────────────────── -->
-	<div class="flex-1 flex flex-col min-h-0">
+	<!-- relative here (not on the map div) so the elevation card is outside
+	     Leaflet's container — avoids overflow:hidden / z-index interference -->
+	<div class="flex-1 flex flex-col min-h-0 relative">
 
-		<!-- Map + floating elevation overlay -->
-		<div class="relative flex-1 min-h-0">
+		<!-- Map -->
+		<div class="flex-1 min-h-0">
 			<Map />
+		</div>
 
-			<!-- Desktop: floating elevation card -->
-			<div class="hidden lg:block" style="
-				position:absolute;
-				bottom:16px;
-				left:16px;
-				right:16px;
-				height:130px;
-				background:var(--surface);
-				border-radius:12px;
-				box-shadow:0 4px 24px rgba(0,0,0,0.14),0 1px 6px rgba(0,0,0,0.08);
-				overflow:hidden;
-				z-index:10;
-			">
-				<ElevationStrip />
-			</div>
+		<!-- Desktop: floating elevation card — sibling of map, not nested inside it -->
+		<div class="hidden lg:block" style="
+			position:absolute;
+			bottom:16px;
+			left:16px;
+			right:16px;
+			height:130px;
+			background:var(--surface);
+			border-radius:12px;
+			box-shadow:0 4px 24px rgba(0,0,0,0.14),0 1px 6px rgba(0,0,0,0.08);
+			overflow:hidden;
+			z-index:10;
+			pointer-events:auto;
+		">
+			<ElevationStrip />
 		</div>
 
 		<!-- ── MOBILE BOTTOM STACK ──────────────────────────────────────────────
@@ -225,16 +233,14 @@
 					background:var(--surface);
 				"
 			>
-				<!-- Runner name + finish time — two columns, stacked -->
+				<!-- Runner name + finish time — two columns, single row each -->
 				<div style="flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; min-width:0">
 					{#each [runner1, runner2] as runner}
-						<div style="display:flex; flex-direction:column; gap:2px; min-width:0">
-							<div style="display:flex; align-items:center; gap:5px; min-width:0">
-								<span style="width:7px;height:7px;border-radius:50%;background:{runner.hexColor};flex-shrink:0"></span>
-								<span style="font-size:12px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{runner.name}</span>
-							</div>
+						<div style="display:flex; align-items:center; gap:5px; min-width:0">
+							<span style="width:7px;height:7px;border-radius:50%;background:{runner.hexColor};flex-shrink:0"></span>
+							<span style="font-size:12px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">{runner.name}</span>
 							{#if runner.finishTime}
-								<span style="font-size:11px;color:var(--t2);font-variant-numeric:tabular-nums;padding-left:12px">{runner.finishTime}</span>
+								<span style="font-size:11px;color:var(--t2);font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0">{shortFinish(runner.finishTime)}</span>
 							{/if}
 						</div>
 					{/each}
