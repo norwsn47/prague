@@ -87,19 +87,23 @@ class PointsStore {
 		}).catch(() => {});
 	}
 
+	private applyOrder(savedIds: string[], points: SpectatorPoint[]) {
+		const existingIds = new Set(points.map(p => p.id));
+		const valid = savedIds.filter(id => existingIds.has(id));
+		const unsorted = points
+			.filter(p => !valid.includes(p.id))
+			.sort((a, b) => a.distance_m - b.distance_m)
+			.map(p => p.id);
+		this._order = [...valid, ...unsorted];
+	}
+
 	private loadOrder(points: SpectatorPoint[]) {
 		let saved: string[] = [];
 		try {
 			const raw = localStorage.getItem('prague-spectator-order');
 			if (raw) saved = JSON.parse(raw);
 		} catch {}
-		const existingIds = new Set(points.map(p => p.id));
-		const validSaved = saved.filter(id => existingIds.has(id));
-		const unsaved = points
-			.filter(p => !validSaved.includes(p.id))
-			.sort((a, b) => a.distance_m - b.distance_m)
-			.map(p => p.id);
-		this._order = [...validSaved, ...unsaved];
+		this.applyOrder(saved, points);
 		this.saveOrder();
 	}
 
@@ -122,14 +126,7 @@ class PointsStore {
 			// Apply ordering — D1 wins over localStorage
 			if (settings.spectator_order) {
 				try {
-					const saved = JSON.parse(settings.spectator_order) as string[];
-					const existingIds = new Set(this.list.map(p => p.id));
-					const valid = saved.filter(id => existingIds.has(id));
-					const unsorted = this.list
-						.filter(p => !valid.includes(p.id))
-						.sort((a, b) => a.distance_m - b.distance_m)
-						.map(p => p.id);
-					this._order = [...valid, ...unsorted];
+					this.applyOrder(JSON.parse(settings.spectator_order), this.list);
 					try { localStorage.setItem('prague-spectator-order', settings.spectator_order); } catch {}
 				} catch {
 					this.loadOrder(this.list);

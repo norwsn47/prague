@@ -1,4 +1,4 @@
-import { runner1, runner2, formatTime } from './runners.svelte.js';
+import { runner1, runner2, formatTime, MARATHON_DIST_M } from './runners.svelte.js';
 import type { SpectatorPoint } from './spectatorPoints.svelte.js';
 
 export type ArrivalRow = {
@@ -9,8 +9,6 @@ export type ArrivalRow = {
 	arrivalSecs: number;
 	arrivalStr: string;
 };
-
-const MARATHON_DIST_M = 42195;
 
 /**
  * Builds arrival-time rows for a spectator point, one per valid runner × distance.

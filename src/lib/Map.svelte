@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { mount, unmount, onMount, onDestroy } from 'svelte';
 	import { ROUTE_COORDS, ROUTE_TOTAL_M, positionAtDistance, findAllSnapCandidates } from './route.js';
-	import { runner1, runner2 } from './runners.svelte.js';
+	import { runner1, runner2, MARATHON_DIST_M } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
 	import { pointsStore } from './spectatorPoints.svelte.js';
 	import PointPopup from './PointPopup.svelte';
@@ -83,9 +83,9 @@
 			const [lon, lat] = positionAtDistance(0);
 			return { pos: [lat, lon], distM: 0, status: 'waiting' };
 		}
-		const distM = Math.min(elapsed / runner.pacePerMetre, 42195);
+		const distM = Math.min(elapsed / runner.pacePerMetre, MARATHON_DIST_M);
 		const [lon, lat] = positionAtDistance(distM);
-		return { pos: [lat, lon], distM, status: distM >= 42195 ? 'finished' : 'running' };
+		return { pos: [lat, lon], distM, status: distM >= MARATHON_DIST_M ? 'finished' : 'running' };
 	}
 
 	function syncMarker(

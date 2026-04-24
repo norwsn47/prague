@@ -1,3 +1,5 @@
+export const MARATHON_DIST_M = 42195;
+
 export class Runner {
 	readonly name: string;
 	readonly hexColor: string;
@@ -24,7 +26,7 @@ export class Runner {
 	/** Seconds per metre at target pace */
 	get pacePerMetre(): number {
 		const secs = this.finishSeconds;
-		return secs > 0 ? secs / 42195 : 0;
+		return secs > 0 ? secs / MARATHON_DIST_M : 0;
 	}
 
 	/** Human-readable pace string, e.g. "4:16 /km" */

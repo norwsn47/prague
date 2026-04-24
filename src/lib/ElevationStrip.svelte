@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { ROUTE_TOTAL_M } from './route.js';
-	import { runner1, runner2 } from './runners.svelte.js';
+	import { runner1, runner2, MARATHON_DIST_M } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
-	import { pointsStore } from './spectatorPoints.svelte.js';
+	import { pointsStore, type SpectatorPoint } from './spectatorPoints.svelte.js';
 
 	type ElePoint = { distanceKm: number; elevationM: number };
 
@@ -81,23 +81,22 @@
 		labelTransform: string;
 	};
 
-	const visiblePoints = $derived.by(() => {
-		return pointsStore.sorted.filter(point => {
+	type VisibleSlot = { point: SpectatorPoint; distM: number };
+
+	const visibleSlots = $derived.by((): VisibleSlot[] => {
+		const slots: VisibleSlot[] = [];
+		for (const point of pointsStore.sorted) {
 			const distances = point.distance_m_2 != null
-				? [point.distance_m, point.distance_m_2]
+				? [point.distance_m, point.distance_m_2 as number]
 				: [point.distance_m];
-			const runners = [
-				{ r: runner1, ri: 0 },
-				{ r: runner2, ri: 1 },
-			];
-			for (const [di] of distances.entries()) {
-				for (const { r, ri } of runners) {
-					if (!r.isValid) continue;
-					if (!pointsStore.isSlotHidden(point.id, `${di}-${ri}`)) return true;
-				}
+			for (const [di, distM] of distances.entries()) {
+				const hasVisible = [runner1, runner2].some((r, ri) =>
+					r.isValid && !pointsStore.isSlotHidden(point.id, `${di}-${ri}`)
+				);
+				if (hasVisible) slots.push({ point, distM });
 			}
-			return false;
-		});
+		}
+		return slots;
 	});
 
 	const runnerMarkers = $derived.by((): Marker[] => {
@@ -114,7 +113,7 @@
 			.map(({ runner, borderColor, labelTopPx }): Marker => {
 				const { name, hexColor: color } = runner;
 				const elapsed = timeState.current - runner.startSeconds;
-				const distM = elapsed < 0 ? 0 : Math.min(elapsed / runner.pacePerMetre, 42195);
+				const distM = elapsed < 0 ? 0 : Math.min(elapsed / runner.pacePerMetre, MARATHON_DIST_M);
 				const distKm = distM / 1000;
 				const elev = interpolateElev(distKm);
 
@@ -124,7 +123,7 @@
 
 				const label =
 					elapsed < 0    ? `${name} — at start` :
-					distM >= 42195 ? `${name} — finished` :
+					distM >= MARATHON_DIST_M ? `${name} — finished` :
 					                 `${name} — ${distKm.toFixed(1)} km`;
 
 				const labelTransform =
@@ -263,8 +262,8 @@
 		{/each}
 
 		<!-- Spectator point dashed lines (non-interactive) -->
-		{#each visiblePoints as point}
-			{@const xPct = (point.distance_m / ROUTE_TOTAL_M) * 100}
+		{#each visibleSlots as slot}
+			{@const xPct = (slot.distM / ROUTE_TOTAL_M) * 100}
 			<div style="
 				position:absolute;
 				left:{xPct}%;
@@ -279,13 +278,13 @@
 	</div>
 
 	<!-- Spectator point letter badges — clickable, rendered above x-axis labels -->
-	{#each visiblePoints as point}
-		{@const xPct = (point.distance_m / ROUTE_TOTAL_M) * 100}
-		{@const letter = pointsStore.letterFor(point.id)}
+	{#each visibleSlots as slot}
+		{@const xPct = (slot.distM / ROUTE_TOTAL_M) * 100}
+		{@const letter = pointsStore.letterFor(slot.point.id)}
 		{@const shift = xPct < 5 ? 'translateX(0)' : xPct > 95 ? 'translateX(-100%)' : 'translateX(-50%)'}
 		<button
-			onclick={() => { pointsStore.openPopupId = point.id; }}
-			title="{letter}{point.name ? ` — ${point.name}` : ''}"
+			onclick={() => { pointsStore.openPopupId = slot.point.id; }}
+			title="{letter}{slot.point.name ? ` — ${slot.point.name}` : ''}"
 			style="
 				position:absolute;
 				left:{xPct}%;

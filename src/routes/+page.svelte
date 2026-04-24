@@ -74,7 +74,7 @@
 			<div class="px-6 pt-5 pb-1">
 				<p class="label-caps">Runners</p>
 			</div>
-			<RunnerPanel sidebar />
+			<RunnerPanel />
 
 			<!-- Spectator points section — heading always visible -->
 			<div style="border-top:1px solid var(--border-s); padding:16px 24px 6px">
