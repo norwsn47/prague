@@ -293,6 +293,6 @@
 		margin: 10px 12px;
 	}
 	:global(.leaflet-tile-pane) {
-		filter: grayscale(100%);
+		filter: grayscale(100%) brightness(1.8) contrast(0.45);
 	}
 </style>
