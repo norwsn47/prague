@@ -133,7 +133,7 @@
 				maxWidth: 310,
 				// Keep popup fully visible when near edge of map viewport
 				autoPanPaddingTopLeft:     [24, 80] as unknown as import('leaflet').PointExpression,
-				autoPanPaddingBottomRight: [24, 24] as unknown as import('leaflet').PointExpression,
+				autoPanPaddingBottomRight: [24, 166] as unknown as import('leaflet').PointExpression,
 				className: 'spectator-popup',
 			}).setContent(container)
 		);

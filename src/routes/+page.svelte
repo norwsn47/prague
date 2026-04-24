@@ -218,8 +218,10 @@
 	     Leaflet's container — avoids overflow:hidden / z-index interference -->
 	<div class="flex-1 flex flex-col min-h-0 relative">
 
-		<!-- Map -->
-		<div class="flex-1 min-h-0">
+		<!-- Map — isolation:isolate creates a stacking context that contains all of
+		     Leaflet's internal z-indices (tiles:200 … controls:800), preventing them
+		     from competing with the elevation card (z-index:10) in the parent context -->
+		<div class="flex-1 min-h-0" style="isolation:isolate">
 			<Map />
 		</div>
 
