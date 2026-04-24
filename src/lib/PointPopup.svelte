@@ -104,25 +104,38 @@
 	{/each}
 
 	<!-- Actions -->
-	<div style="display:flex; gap:6px">
+	<div style="display:flex; align-items:center; justify-content:space-between">
 		<a
 			href="https://maps.google.com/?q={point.lat},{point.lon}"
 			target="_blank"
 			rel="noopener noreferrer"
 			style="
-				flex:1; text-align:center; padding:6px 0;
-				background:#4f46e5; color:white; border-radius:6px;
-				font-size:11px; font-weight:600; text-decoration:none; display:block;
+				display:flex; align-items:center; gap:5px;
+				color:#4285F4; font-size:11px; font-weight:500;
+				text-decoration:underline; text-underline-offset:2px;
 			"
-		>Google Maps</a>
+		>
+			<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+				<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#4285F4"/>
+			</svg>
+			Open in Google Maps
+		</a>
 		<button
 			onclick={() => { deleting = true; onDelete(); }}
 			disabled={deleting}
 			style="
-				padding:6px 12px; background:#fff0f0; color:#dc2626;
-				border:1.5px solid #fecaca; border-radius:6px;
-				font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;
+				padding:5px; background:none; border:none;
+				color:{deleting ? '#94a3b8' : '#dc2626'};
+				cursor:{deleting ? 'default' : 'pointer'};
+				display:flex; align-items:center; justify-content:center;
 			"
-		>{deleting ? '…' : 'Delete'}</button>
+			title="Delete"
+		>
+			<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M9 3h6l1 2H8L9 3z" fill="currentColor"/>
+				<rect x="4" y="7" width="16" height="2" rx="1" fill="currentColor"/>
+				<path d="M6 10l1.5 11h9L18 10H6zm4 9v-7h1v7h-1zm3 0v-7h1v7h-1z" fill="currentColor"/>
+			</svg>
+		</button>
 	</div>
 </div>
