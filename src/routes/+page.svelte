@@ -221,30 +221,20 @@
 				style="
 					width:100%; border:none; cursor:pointer;
 					display:flex; align-items:center; gap:12px;
-					padding:0 16px; height:48px;
+					padding:10px 16px;
 					background:var(--surface);
 				"
 			>
-				<!-- Runner name + pace summary -->
-				<div style="flex:1; display:flex; gap:20px; min-width:0; overflow:hidden">
+				<!-- Runner name + finish time — two columns, stacked -->
+				<div style="flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; min-width:0">
 					{#each [runner1, runner2] as runner}
-						<div style="display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden">
-							<span style="
-								width:8px; height:8px; border-radius:50%;
-								background:{runner.hexColor}; flex-shrink:0;
-							"></span>
-							<span style="
-								font-size:12px; font-weight:600; color:var(--t1);
-								white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-							">{runner.name}</span>
-							{#if runner.raceNumber}
-								<span style="font-size:10px; color:var(--t3); white-space:nowrap">({runner.raceNumber})</span>
-							{/if}
-							{#if runner.paceString}
-								<span style="
-									font-size:10px; font-family:var(--font-mono);
-									color:var(--t3); white-space:nowrap;
-								">{runner.paceString}</span>
+						<div style="display:flex; flex-direction:column; gap:2px; min-width:0">
+							<div style="display:flex; align-items:center; gap:5px; min-width:0">
+								<span style="width:7px;height:7px;border-radius:50%;background:{runner.hexColor};flex-shrink:0"></span>
+								<span style="font-size:12px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{runner.name}</span>
+							</div>
+							{#if runner.finishTime}
+								<span style="font-size:11px;color:var(--t2);font-variant-numeric:tabular-nums;padding-left:12px">{runner.finishTime}</span>
 							{/if}
 						</div>
 					{/each}
