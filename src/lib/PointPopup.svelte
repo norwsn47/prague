@@ -2,6 +2,7 @@
 	import { untrack } from 'svelte';
 	import { runner1, runner2, formatTime } from './runners.svelte.js';
 	import type { SpectatorPoint } from './spectatorPoints.svelte.js';
+	import { pointsStore } from './spectatorPoints.svelte.js';
 
 	let {
 		point,
@@ -18,23 +19,6 @@
 	let name     = $state(untrack(() => point.name));
 	let comment  = $state(untrack(() => point.comment));
 	let deleting = $state(false);
-
-	// Hidden state keyed by "distanceIndex-runnerIndex", persisted per point
-	const storageKey = untrack(() => `prague-hidden-${point.id}`);
-	function loadHidden(): Set<string> {
-		try {
-			const raw = localStorage.getItem(storageKey);
-			return raw ? new Set(JSON.parse(raw)) : new Set();
-		} catch { return new Set(); }
-	}
-	let hidden = $state<Set<string>>(loadHidden());
-
-	function toggleHidden(key: string) {
-		const next = new Set(hidden);
-		next.has(key) ? next.delete(key) : next.add(key);
-		hidden = next;
-		try { localStorage.setItem(storageKey, JSON.stringify([...next])); } catch {}
-	}
 
 	const distances = $derived(
 		point.distance_m_2 != null
@@ -138,7 +122,7 @@
 			</thead>
 			<tbody>
 				{#each rows as row}
-					{@const isHidden = hidden.has(row.key)}
+					{@const isHidden = pointsStore.isSlotHidden(point.id, row.key)}
 					<tr style="
 						border-bottom:1px solid #F5F6F4;
 						opacity:{isHidden ? 0.35 : 1};
@@ -149,7 +133,7 @@
 						<td style="padding:5px 6px; text-align:right; font-size:12px; font-weight:700; color:#2C2C2C; font-variant-numeric:tabular-nums; white-space:nowrap">{row.arrivalStr}</td>
 						<td style="padding:5px 0 5px 4px; text-align:right">
 							<button
-								onclick={() => toggleHidden(row.key)}
+								onclick={() => pointsStore.toggleSlot(point.id, row.key)}
 								title={isHidden ? 'Show' : 'Hide'}
 								style="
 									background:none; border:none; padding:2px; cursor:pointer;

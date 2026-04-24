@@ -12,6 +12,7 @@ class PointsStore {
 	list = $state<SpectatorPoint[]>([]);
 	openPopupId = $state<string | null>(null);
 	private _order = $state<string[]>([]);
+	hiddenSlots = $state<Record<string, string[]>>({});
 
 	get sorted(): SpectatorPoint[] {
 		const ordered = this._order
@@ -46,6 +47,30 @@ class PointsStore {
 		this.saveOrder();
 	}
 
+	isSlotHidden(pointId: string, key: string): boolean {
+		return (this.hiddenSlots[pointId] ?? []).includes(key);
+	}
+
+	toggleSlot(pointId: string, key: string) {
+		const current = this.hiddenSlots[pointId] ?? [];
+		const next = current.includes(key)
+			? current.filter(k => k !== key)
+			: [...current, key];
+		this.hiddenSlots = { ...this.hiddenSlots, [pointId]: next };
+		this.saveHiddenSlots();
+	}
+
+	private saveHiddenSlots() {
+		try { localStorage.setItem('prague-hidden-slots', JSON.stringify(this.hiddenSlots)); } catch {}
+	}
+
+	private loadHiddenSlots() {
+		try {
+			const raw = localStorage.getItem('prague-hidden-slots');
+			if (raw) this.hiddenSlots = JSON.parse(raw);
+		} catch {}
+	}
+
 	private saveOrder() {
 		try { localStorage.setItem('prague-spectator-order', JSON.stringify(this._order)); } catch {}
 	}
@@ -72,6 +97,7 @@ class PointsStore {
 			if (res.ok) {
 				this.list = await res.json();
 				this.loadOrder(this.list);
+				this.loadHiddenSlots();
 			}
 		} catch (e) {
 			console.error('Failed to load spectator points', e);
@@ -123,6 +149,9 @@ class PointsStore {
 				this.list = this.list.filter((p) => p.id !== id);
 				this._order = this._order.filter(oid => oid !== id);
 				this.saveOrder();
+				const { [id]: _removed, ...rest } = this.hiddenSlots;
+				this.hiddenSlots = rest;
+				this.saveHiddenSlots();
 				if (this.openPopupId === id) this.openPopupId = null;
 			}
 		} catch (e) {

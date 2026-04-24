@@ -81,6 +81,25 @@
 		labelTransform: string;
 	};
 
+	const visiblePoints = $derived.by(() => {
+		return pointsStore.sorted.filter(point => {
+			const distances = point.distance_m_2 != null
+				? [point.distance_m, point.distance_m_2]
+				: [point.distance_m];
+			const runners = [
+				{ r: runner1, ri: 0 },
+				{ r: runner2, ri: 1 },
+			];
+			for (const [di] of distances.entries()) {
+				for (const { r, ri } of runners) {
+					if (!r.isValid) continue;
+					if (!pointsStore.isSlotHidden(point.id, `${di}-${ri}`)) return true;
+				}
+			}
+			return false;
+		});
+	});
+
 	const runnerMarkers = $derived.by((): Marker[] => {
 		if (!elevStats || profile.length === 0) return [];
 		const { minE, range, profileMaxKm } = elevStats;
@@ -243,7 +262,7 @@
 		{/each}
 
 		<!-- Spectator point dashed lines (non-interactive) -->
-		{#each pointsStore.sorted as point}
+		{#each visiblePoints as point}
 			{@const xPct = (point.distance_m / ROUTE_TOTAL_M) * 100}
 			<div style="
 				position:absolute;
@@ -259,9 +278,9 @@
 	</div>
 
 	<!-- Spectator point letter badges — clickable, rendered above x-axis labels -->
-	{#each pointsStore.sorted as point, i}
+	{#each visiblePoints as point}
 		{@const xPct = (point.distance_m / ROUTE_TOTAL_M) * 100}
-		{@const letter = String.fromCharCode(65 + i)}
+		{@const letter = pointsStore.letterFor(point.id)}
 		{@const shift = xPct < 5 ? 'translateX(0)' : xPct > 95 ? 'translateX(-100%)' : 'translateX(-50%)'}
 		<button
 			onclick={() => { pointsStore.openPopupId = point.id; }}

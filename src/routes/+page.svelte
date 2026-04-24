@@ -3,10 +3,47 @@
 	import RunnerPanel from '$lib/RunnerPanel.svelte';
 	import TimeSlider from '$lib/TimeSlider.svelte';
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
-	import { runner1, runner2 } from '$lib/runners.svelte.js';
-	import { pointsStore } from '$lib/spectatorPoints.svelte.js';
+	import { runner1, runner2, formatTime } from '$lib/runners.svelte.js';
+	import { pointsStore, type SpectatorPoint } from '$lib/spectatorPoints.svelte.js';
 
 	let mobileRunnerOpen = $state(false);
+	let expandedIds = $state<Set<string>>(new Set());
+
+	function toggleExpanded(id: string) {
+		const next = new Set(expandedIds);
+		next.has(id) ? next.delete(id) : next.add(id);
+		expandedIds = next;
+	}
+
+	function kmLabel(distM: number): string {
+		return (distM / 1000).toFixed(1) + ' km';
+	}
+
+	function pointRows(point: SpectatorPoint) {
+		const distances = point.distance_m_2 != null
+			? [point.distance_m, point.distance_m_2]
+			: [point.distance_m];
+		const runners = [
+			{ r: runner1, color: '#4d7a5f', idx: 0 },
+			{ r: runner2, color: '#9e6080', idx: 1 },
+		];
+		const all: { key: string; name: string; color: string; distM: number; arrivalSecs: number; arrivalStr: string }[] = [];
+		for (const [di, distM] of distances.entries()) {
+			for (const { r, color, idx: ri } of runners) {
+				if (!r.isValid) continue;
+				const arrivalSecs = r.startSeconds + distM * r.pacePerMetre;
+				all.push({
+					key: `${di}-${ri}`,
+					name: r.name,
+					color,
+					distM,
+					arrivalSecs: distM >= 42195 ? Infinity : arrivalSecs,
+					arrivalStr: distM >= 42195 ? 'finished' : formatTime(arrivalSecs),
+				});
+			}
+		}
+		return all.sort((a, b) => a.arrivalSecs - b.arrivalSecs);
+	}
 </script>
 
 <div class="h-dvh flex flex-col lg:flex-row overflow-hidden" style="background:var(--bg)">
@@ -48,38 +85,87 @@
 						{@const letter = String.fromCharCode(65 + i)}
 						{@const isFirst = i === 0}
 						{@const isLast = i === pointsStore.sorted.length - 1}
-						<div
-							class="sp-row"
-							style="display:flex; align-items:center; gap:8px; padding:6px 12px 6px 24px"
-						>
-							<!-- Letter badge -->
-							<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">{letter}</span>
+						{@const isExpanded = expandedIds.has(point.id)}
+						{@const rows = pointRows(point)}
+						<div class="sp-row">
+							<!-- Main row -->
+							<div style="display:flex; align-items:center; gap:8px; padding:6px 12px 6px 24px">
+								<!-- Letter badge -->
+								<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">{letter}</span>
 
-							<!-- Name — clicking opens popup -->
-							<button
-								onclick={() => { pointsStore.openPopupId = point.id; }}
-								style="flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;font-size:12px;font-weight:500;color:var(--t1);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font)"
-							>{point.name || 'Unnamed spot'}</button>
+								<!-- Name — clicking opens popup -->
+								<button
+									onclick={() => { pointsStore.openPopupId = point.id; }}
+									style="flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;font-size:12px;font-weight:500;color:var(--t1);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font)"
+								>{point.name || 'Unnamed spot'}</button>
 
-							<!-- Up / down -->
-							<div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
-								<button
-									onclick={() => pointsStore.moveUp(point.id)}
-									disabled={isFirst}
-									aria-label="Move up"
-									style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isFirst ? 'default' : 'pointer'};color:{isFirst ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
-								>
-									<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2L9 7H1L5 2Z" fill="currentColor"/></svg>
-								</button>
-								<button
-									onclick={() => pointsStore.moveDown(point.id)}
-									disabled={isLast}
-									aria-label="Move down"
-									style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isLast ? 'default' : 'pointer'};color:{isLast ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
-								>
-									<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8L1 3H9L5 8Z" fill="currentColor"/></svg>
-								</button>
+								<!-- Up / down -->
+								<div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
+									<button
+										onclick={() => pointsStore.moveUp(point.id)}
+										disabled={isFirst}
+										aria-label="Move up"
+										style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isFirst ? 'default' : 'pointer'};color:{isFirst ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
+									>
+										<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2L9 7H1L5 2Z" fill="currentColor"/></svg>
+									</button>
+									<button
+										onclick={() => pointsStore.moveDown(point.id)}
+										disabled={isLast}
+										aria-label="Move down"
+										style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isLast ? 'default' : 'pointer'};color:{isLast ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
+									>
+										<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8L1 3H9L5 8Z" fill="currentColor"/></svg>
+									</button>
+								</div>
+
+								<!-- Expand toggle (only when rows exist) -->
+								{#if rows.length > 0}
+									<button
+										onclick={() => toggleExpanded(point.id)}
+										aria-label={isExpanded ? 'Collapse' : 'Expand'}
+										style="width:18px;height:18px;border:none;background:none;padding:0;cursor:pointer;color:var(--t2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s;transform:rotate({isExpanded ? 90 : 0}deg)"
+									>
+										<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 2L7 5L3 8Z" fill="currentColor"/></svg>
+									</button>
+								{/if}
 							</div>
+
+							<!-- Expanded arrival table -->
+							{#if isExpanded && rows.length > 0}
+								<table style="width:100%;border-collapse:collapse;padding:0 24px 8px;display:table">
+									<tbody>
+										{#each rows as row}
+											{@const isHidden = pointsStore.isSlotHidden(point.id, row.key)}
+											<tr style="opacity:{isHidden ? 0.35 : 1};transition:opacity 0.15s ease">
+												<td style="padding:3px 6px 3px 24px;font-size:11px;font-weight:600;color:{row.color}">{row.name}</td>
+												<td style="padding:3px 6px;font-size:11px;color:#9E9E9E;font-variant-numeric:tabular-nums">{kmLabel(row.distM)}</td>
+												<td style="padding:3px 6px;text-align:right;font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums;white-space:nowrap">{row.arrivalStr}</td>
+												<td style="padding:3px 12px 3px 4px;text-align:right">
+													<button
+														onclick={() => pointsStore.toggleSlot(point.id, row.key)}
+														title={isHidden ? 'Show' : 'Hide'}
+														style="background:none;border:none;padding:2px;cursor:pointer;color:{isHidden ? '#9E9E9E' : '#D0D0D0'};display:inline-flex;align-items:center;justify-content:center;line-height:0"
+													>
+														{#if isHidden}
+															<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+																<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+																<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+																<line x1="1" y1="1" x2="23" y2="23"/>
+															</svg>
+														{:else}
+															<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+																<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+																<circle cx="12" cy="12" r="3"/>
+															</svg>
+														{/if}
+													</button>
+												</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -97,17 +183,23 @@
 	<!-- ── RIGHT / MAIN CONTENT ────────────────────────────────────────────── -->
 	<div class="flex-1 flex flex-col min-h-0">
 
-		<!-- Map — fills all available vertical space above the bottom stack -->
+		<!-- Map + floating elevation overlay -->
 		<div class="relative flex-1 min-h-0">
 			<Map />
-		</div>
 
-		<!-- Desktop: elevation strip -->
-		<div class="hidden lg:block shrink-0" style="border-top:1px solid var(--border)">
-			<div class="flex items-center px-6 py-2" style="background:var(--surface)">
-				<span class="label-caps" style="color:var(--t3)">Elevation Profile</span>
-			</div>
-			<div class="h-36" style="background:var(--surface)">
+			<!-- Desktop: floating elevation card -->
+			<div class="hidden lg:block" style="
+				position:absolute;
+				bottom:16px;
+				left:16px;
+				right:16px;
+				height:130px;
+				background:var(--surface);
+				border-radius:12px;
+				box-shadow:0 4px 24px rgba(0,0,0,0.14),0 1px 6px rgba(0,0,0,0.08);
+				overflow:hidden;
+				z-index:10;
+			">
 				<ElevationStrip />
 			</div>
 		</div>
@@ -259,8 +351,10 @@
 			{/if}
 
 			<!-- 2) ELEVATION PROFILE ──────────────────────────────────────────── -->
-			<div style="height:80px; border-top:1px solid var(--border-s)">
-				<ElevationStrip />
+			<div style="border-top:1px solid var(--border-s); padding:6px 8px 4px; background:var(--bg)">
+				<div style="height:76px; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+					<ElevationStrip />
+				</div>
 			</div>
 
 			<!-- 3) COMPACT TIME SLIDER — anchored at very bottom ──────────────── -->
