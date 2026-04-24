@@ -292,4 +292,7 @@
 	:global(.spectator-popup .leaflet-popup-content) {
 		margin: 10px 12px;
 	}
+	:global(.leaflet-tile-pane) {
+		filter: grayscale(100%);
+	}
 </style>
