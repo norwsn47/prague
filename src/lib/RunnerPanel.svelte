@@ -26,30 +26,30 @@
 			{/if}
 		</div>
 
-		<!-- Start time -->
-		<div>
-			<label for="start-{cfg.id}" class="label-caps block mb-1.5">Start time</label>
-			<input
-				id="start-{cfg.id}"
-				type="time"
-				bind:value={cfg.runner.startTime}
-				class="app-input"
-			/>
-		</div>
-
-		<!-- Predicted finish -->
-		<div>
-			<label for="finish-{cfg.id}" class="label-caps block mb-1.5">
-				Finish&thinsp;<span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--t3);font-size:10px">(H:MM:SS)</span>
-			</label>
-			<input
-				id="finish-{cfg.id}"
-				type="text"
-				bind:value={cfg.runner.finishTime}
-				pattern="^\d+:[0-5]\d(:[0-5]\d)?$"
-				placeholder="3:00:00"
-				class="app-input"
-			/>
+		<!-- Start + Finish on one row -->
+		<div class="flex gap-3">
+			<div class="flex-1 min-w-0">
+				<label for="start-{cfg.id}" class="label-caps block mb-1.5">Start</label>
+				<input
+					id="start-{cfg.id}"
+					type="time"
+					bind:value={cfg.runner.startTime}
+					class="app-input"
+				/>
+			</div>
+			<div class="flex-1 min-w-0">
+				<label for="finish-{cfg.id}" class="label-caps block mb-1.5">
+					Finish&thinsp;<span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--t3);font-size:10px">(H:MM:SS)</span>
+				</label>
+				<input
+					id="finish-{cfg.id}"
+					type="text"
+					bind:value={cfg.runner.finishTime}
+					pattern="^\d+:[0-5]\d(:[0-5]\d)?$"
+					placeholder="3:00:00"
+					class="app-input"
+				/>
+			</div>
 		</div>
 
 	</div>

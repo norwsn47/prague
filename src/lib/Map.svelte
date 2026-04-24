@@ -33,12 +33,12 @@
 		});
 	}
 
-	function runnerIcon(initial: string, bg: string): import('leaflet').DivIcon {
+	function runnerIcon(initial: string, bg: string, offsetRight = false): import('leaflet').DivIcon {
 		return L.divIcon({
 			className: '',
 			html: `<div style="width:28px;height:28px;border-radius:50%;background:${bg};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;font-family:sans-serif">${initial}</div>`,
 			iconSize: [28, 28],
-			iconAnchor: [14, 14],
+			iconAnchor: offsetRight ? [-55, 14] : [14, 14],
 		});
 	}
 
@@ -70,13 +70,13 @@
 		return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 	}
 
-	function positionForRunner(runner: typeof runner1): [number, number] | null {
+	function positionForRunner(runner: typeof runner1): { pos: [number, number]; distM: number } | null {
 		if (!runner.isValid) return null;
 		const elapsed = timeState.current - runner.startSeconds;
 		if (elapsed < 0) return null;
 		const distM = Math.min(elapsed / runner.pacePerMetre, 42195);
 		const [lon, lat] = positionAtDistance(distM);
-		return [lat, lon];
+		return { pos: [lat, lon], distM };
 	}
 
 	function syncMarker(
@@ -85,13 +85,16 @@
 		bg: string,
 		onUpdate: (m: import('leaflet').Marker | null) => void
 	) {
-		const pos = positionForRunner(runner);
-		if (!pos) { current?.remove(); onUpdate(null); return; }
+		const result = positionForRunner(runner);
+		if (!result) { current?.remove(); onUpdate(null); return; }
+		const { pos, distM } = result;
+		const atBoundary = distM < 300 || distM >= 42000;
+		const initial = runner.name.trim()[0]?.toUpperCase() ?? '?';
 		if (current) {
 			current.setLatLng(pos);
+			current.setIcon(runnerIcon(initial, bg, atBoundary));
 		} else {
-			const initial = runner.name.trim()[0]?.toUpperCase() ?? '?';
-			const m = L.marker(pos, { icon: runnerIcon(initial, bg), zIndexOffset: 1000 }).addTo(map);
+			const m = L.marker(pos, { icon: runnerIcon(initial, bg, atBoundary), zIndexOffset: 1000 }).addTo(map);
 			m.bindTooltip(runner.name, { permanent: false, direction: 'top', offset: [0, -14] });
 			onUpdate(m);
 		}
