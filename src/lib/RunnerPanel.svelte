@@ -11,6 +11,18 @@
 	];
 
 	let editingId = $state<string | null>(null);
+
+	function saveRunner(cfg: RunnerConfig) {
+		const n = cfg.id === 'will' ? '1' : '2';
+		fetch('/api/settings', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				[`runner_${n}_start`]:  cfg.runner.startTime,
+				[`runner_${n}_finish`]: cfg.runner.finishTime,
+			}),
+		}).catch(() => {});
+	}
 </script>
 
 {#if sidebar}
@@ -44,6 +56,7 @@
 								id="start-{cfg.id}"
 								type="time"
 								bind:value={cfg.runner.startTime}
+								onblur={() => saveRunner(cfg)}
 								class="app-input"
 								style="width:100%"
 							/>
@@ -56,6 +69,7 @@
 								id="finish-{cfg.id}"
 								type="text"
 								bind:value={cfg.runner.finishTime}
+								onblur={() => saveRunner(cfg)}
 								pattern="^\d+:[0-5]\d(:[0-5]\d)?$"
 								placeholder="3:00:00"
 								class="app-input"

@@ -61,7 +61,13 @@ class PointsStore {
 	}
 
 	private saveHiddenSlots() {
-		try { localStorage.setItem('prague-hidden-slots', JSON.stringify(this.hiddenSlots)); } catch {}
+		const json = JSON.stringify(this.hiddenSlots);
+		try { localStorage.setItem('prague-hidden-slots', json); } catch {}
+		fetch('/api/settings', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ hidden_slots: json }),
+		}).catch(() => {});
 	}
 
 	private loadHiddenSlots() {
@@ -72,7 +78,13 @@ class PointsStore {
 	}
 
 	private saveOrder() {
-		try { localStorage.setItem('prague-spectator-order', JSON.stringify(this._order)); } catch {}
+		const json = JSON.stringify(this._order);
+		try { localStorage.setItem('prague-spectator-order', json); } catch {}
+		fetch('/api/settings', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ spectator_order: json }),
+		}).catch(() => {});
 	}
 
 	private loadOrder(points: SpectatorPoint[]) {
@@ -91,17 +103,58 @@ class PointsStore {
 		this.saveOrder();
 	}
 
-	async load() {
+	async load(): Promise<Record<string, string>> {
+		let settings: Record<string, string> = {};
 		try {
-			const res = await fetch('/api/points');
-			if (res.ok) {
-				this.list = await res.json();
+			const [pointsRes, settingsRes] = await Promise.all([
+				fetch('/api/points'),
+				fetch('/api/settings'),
+			]);
+
+			if (settingsRes.ok) {
+				settings = await settingsRes.json();
+			}
+
+			if (pointsRes.ok) {
+				this.list = await pointsRes.json();
+			}
+
+			// Apply ordering — D1 wins over localStorage
+			if (settings.spectator_order) {
+				try {
+					const saved = JSON.parse(settings.spectator_order) as string[];
+					const existingIds = new Set(this.list.map(p => p.id));
+					const valid = saved.filter(id => existingIds.has(id));
+					const unsorted = this.list
+						.filter(p => !valid.includes(p.id))
+						.sort((a, b) => a.distance_m - b.distance_m)
+						.map(p => p.id);
+					this._order = [...valid, ...unsorted];
+					try { localStorage.setItem('prague-spectator-order', settings.spectator_order); } catch {}
+				} catch {
+					this.loadOrder(this.list);
+				}
+			} else {
 				this.loadOrder(this.list);
+			}
+
+			// Apply hidden slots — D1 wins over localStorage
+			if (settings.hidden_slots) {
+				try {
+					this.hiddenSlots = JSON.parse(settings.hidden_slots);
+					try { localStorage.setItem('prague-hidden-slots', settings.hidden_slots); } catch {}
+				} catch {
+					this.loadHiddenSlots();
+				}
+			} else {
 				this.loadHiddenSlots();
 			}
 		} catch (e) {
 			console.error('Failed to load spectator points', e);
+			this.loadOrder(this.list);
+			this.loadHiddenSlots();
 		}
+		return settings;
 	}
 
 	async create(data: Omit<SpectatorPoint, 'id'>): Promise<SpectatorPoint | null> {

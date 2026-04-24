@@ -1,10 +1,21 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import Map from '$lib/Map.svelte';
 	import RunnerPanel from '$lib/RunnerPanel.svelte';
 	import TimeSlider from '$lib/TimeSlider.svelte';
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
 	import { runner1, runner2, formatTime } from '$lib/runners.svelte.js';
 	import { pointsStore, type SpectatorPoint } from '$lib/spectatorPoints.svelte.js';
+
+	onMount(async () => {
+		// pointsStore.load() fetches both /api/points and /api/settings in parallel;
+		// it returns the raw settings so we can apply runner config here.
+		const settings = await pointsStore.load();
+		if (settings.runner_1_start) runner1.startTime  = settings.runner_1_start;
+		if (settings.runner_1_finish) runner1.finishTime = settings.runner_1_finish;
+		if (settings.runner_2_start) runner2.startTime  = settings.runner_2_start;
+		if (settings.runner_2_finish) runner2.finishTime = settings.runner_2_finish;
+	});
 
 	let mobileRunnerOpen = $state(false);
 	let expandedIds = $state<Set<string>>(new Set());
@@ -13,6 +24,19 @@
 		const next = new Set(expandedIds);
 		next.has(id) ? next.delete(id) : next.add(id);
 		expandedIds = next;
+	}
+
+	function saveRunnerSettings(runnerId: 'will' | 'maggie') {
+		const n = runnerId === 'will' ? '1' : '2';
+		const r = runnerId === 'will' ? runner1 : runner2;
+		fetch('/api/settings', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				[`runner_${n}_start`]:  r.startTime,
+				[`runner_${n}_finish`]: r.finishTime,
+			}),
+		}).catch(() => {});
 	}
 
 	function shortFinish(t: string): string {
@@ -319,6 +343,7 @@
 									id="m-start-{id}"
 									type="time"
 									bind:value={r.startTime}
+									onblur={() => saveRunnerSettings(id as 'will' | 'maggie')}
 									class="app-input"
 									style="min-width:0; width:100%; max-width:100%; box-sizing:border-box"
 								/>
@@ -335,6 +360,7 @@
 									id="m-finish-{id}"
 									type="text"
 									bind:value={r.finishTime}
+									onblur={() => saveRunnerSettings(id as 'will' | 'maggie')}
 									placeholder="3:00:00"
 									pattern="^\d+:[0-5]\d(:[0-5]\d)?$"
 									class="app-input"

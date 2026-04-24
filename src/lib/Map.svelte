@@ -285,7 +285,8 @@
 		});
 
 		mapLoaded = true;
-		await pointsStore.load();
+		// pointsStore.load() is called by +page.svelte onMount (which also applies
+		// runner settings from D1). Spectator markers sync reactively via $effect.
 	});
 
 	onDestroy(() => {
