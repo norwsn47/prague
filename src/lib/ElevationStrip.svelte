@@ -271,6 +271,7 @@
 				left:{xPct}%;
 				bottom:2px;
 				transform:{shift};
+				z-index:10;
 				width:16px; height:16px;
 				border-radius:50%;
 				background:#4D8898;

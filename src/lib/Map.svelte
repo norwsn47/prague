@@ -223,7 +223,7 @@
 
 		// Spectator pane sits above the route overlay but below runner markers
 		const spectatorPaneEl = map.createPane('spectatorPane');
-		spectatorPaneEl.style.zIndex = '450';
+		spectatorPaneEl.style.zIndex = '650';
 
 		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
