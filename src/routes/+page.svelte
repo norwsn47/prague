@@ -3,16 +3,10 @@
 	import RunnerPanel from '$lib/RunnerPanel.svelte';
 	import TimeSlider from '$lib/TimeSlider.svelte';
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
-	import { runner1, runner2, formatTime } from '$lib/runners.svelte.js';
+	import { runner1, runner2 } from '$lib/runners.svelte.js';
 	import { pointsStore } from '$lib/spectatorPoints.svelte.js';
 
 	let mobileRunnerOpen = $state(false);
-
-	function arrivalAt(distM: number, runner: typeof runner1): string {
-		if (!runner.isValid) return '—';
-		if (distM >= 42195) return 'fin';
-		return formatTime(runner.startSeconds + distM * runner.pacePerMetre);
-	}
 </script>
 
 <div class="h-dvh flex flex-col lg:flex-row overflow-hidden" style="background:var(--bg)">
@@ -46,45 +40,49 @@
 
 			<!-- Spectator points list — shown when any points exist -->
 			{#if pointsStore.sorted.length > 0}
-				<div style="border-top:1px solid var(--border-s); padding:16px 24px 4px">
+				<div style="border-top:1px solid var(--border-s); padding:16px 24px 8px">
 					<p class="label-caps">Spectator Points</p>
 				</div>
-				<table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:8px">
-					<thead>
-						<tr style="border-bottom:1px solid var(--border-s)">
-							<th style="padding:4px 6px 4px 24px; text-align:left;  color:var(--t3); font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase"></th>
-							<th style="padding:4px 6px; text-align:left;  color:var(--t3); font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">KM</th>
-							<th style="padding:4px 6px; text-align:right; color:#4d7a5f;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Will</th>
-							<th style="padding:4px 6px 4px 6px; text-align:right; color:#9e6080;  font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase">Maggie</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each pointsStore.sorted as point, i}
-							{@const letter = String.fromCharCode(65 + i)}
-							{@const distances = point.distance_m_2 != null ? [point.distance_m, point.distance_m_2] : [point.distance_m]}
-							{#each distances as distM}
-								<tr
-									class="sp-row"
-									onclick={() => { pointsStore.openPopupId = point.id; }}
-									title={point.name || undefined}
+				<div style="margin-bottom:8px">
+					{#each pointsStore.sorted as point, i}
+						{@const letter = String.fromCharCode(65 + i)}
+						{@const isFirst = i === 0}
+						{@const isLast = i === pointsStore.sorted.length - 1}
+						<div
+							class="sp-row"
+							style="display:flex; align-items:center; gap:8px; padding:6px 12px 6px 24px"
+						>
+							<!-- Letter badge -->
+							<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">{letter}</span>
+
+							<!-- Name — clicking opens popup -->
+							<button
+								onclick={() => { pointsStore.openPopupId = point.id; }}
+								style="flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;font-size:12px;font-weight:500;color:var(--t1);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font)"
+							>{point.name || 'Unnamed spot'}</button>
+
+							<!-- Up / down -->
+							<div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
+								<button
+									onclick={() => pointsStore.moveUp(point.id)}
+									disabled={isFirst}
+									aria-label="Move up"
+									style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isFirst ? 'default' : 'pointer'};color:{isFirst ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
 								>
-									<td style="padding:6px 4px 6px 24px">
-										<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center">{letter}</span>
-									</td>
-									<td style="padding:6px 4px; color:var(--t2); font-variant-numeric:tabular-nums">
-										{(distM / 1000).toFixed(1)}
-									</td>
-									<td style="padding:6px 4px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; color:var(--t1)">
-										{arrivalAt(distM, runner1)}
-									</td>
-									<td style="padding:6px 4px 6px 6px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; color:var(--t1)">
-										{arrivalAt(distM, runner2)}
-									</td>
-								</tr>
-							{/each}
-						{/each}
-					</tbody>
-				</table>
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2L9 7H1L5 2Z" fill="currentColor"/></svg>
+								</button>
+								<button
+									onclick={() => pointsStore.moveDown(point.id)}
+									disabled={isLast}
+									aria-label="Move down"
+									style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isLast ? 'default' : 'pointer'};color:{isLast ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
+								>
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8L1 3H9L5 8Z" fill="currentColor"/></svg>
+								</button>
+							</div>
+						</div>
+					{/each}
+				</div>
 			{/if}
 		</div>
 
