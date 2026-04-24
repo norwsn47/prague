@@ -129,8 +129,8 @@
 				minWidth: 270,
 				maxWidth: 310,
 				// Keep popup fully visible when near edge of map viewport
-				autoPanPaddingTopLeft:     [20, 80] as unknown as import('leaflet').PointExpression,
-				autoPanPaddingBottomRight: [20, 20] as unknown as import('leaflet').PointExpression,
+				autoPanPaddingTopLeft:     [24, 80] as unknown as import('leaflet').PointExpression,
+				autoPanPaddingBottomRight: [24, 24] as unknown as import('leaflet').PointExpression,
 				className: 'spectator-popup',
 			}).setContent(container)
 		);
@@ -205,13 +205,15 @@
 	});
 
 	// External trigger: elevation badge or sidebar row clicked
+	// Don't call map.panTo here — openPopup() triggers Leaflet's autoPan which
+	// pans by exactly enough to show the full popup. Calling panTo first causes
+	// a double-animation conflict where autoPan calculates against a mid-flight position.
 	$effect(() => {
 		if (!mapLoaded) return;
 		const id = pointsStore.openPopupId;
 		if (!id) return;
 		const marker = spectatorMarkers.get(id);
 		if (!marker || marker.isPopupOpen()) return;
-		map.panTo(marker.getLatLng());
 		marker.openPopup();
 	});
 
