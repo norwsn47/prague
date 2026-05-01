@@ -275,23 +275,19 @@
 				<!-- Water station list -->
 				<div style="margin-bottom:8px">
 					{#each waterArrivalRows as ws, i}
-						<div style="display:flex;align-items:center;gap:8px;padding:5px 24px;border-bottom:1px solid var(--border-s)">
-							<!-- Drop icon -->
-							<svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+						{@const gapMins = (i < waterArrivalRows.length - 1 && ws.arrivalSecs > 0)
+							? Math.round((waterArrivalRows[i + 1].arrivalSecs - ws.arrivalSecs) / 60)
+							: null}
+						<div style="display:flex;align-items:center;gap:8px;padding:3px 24px;border-bottom:1px solid var(--border-s)">
+							<svg width="10" height="13" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
 								<path d="M6 1C6 1 1 6.5 1 9.5C1 12.5 3.2 14 6 14C8.8 14 11 12.5 11 9.5C11 6.5 6 1 6 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
 							</svg>
-							<!-- km label -->
-							<span style="font-size:11px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap">{unitStore.current === 'mi' ? (ws.distM / 1609.344).toFixed(1) + ' mi' : ws.km + ' km'}</span>
+							<span style="font-size:11px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap">
+								{unitStore.current === 'mi' ? (ws.distM / 1609.344).toFixed(1) + ' mi' : ws.km + ' km'}{#if gapMins !== null}<span style="font-weight:400;color:#C8C8C8;font-size:10px"> ({gapMins} mins)</span>{/if}
+							</span>
 							<span style="flex:1"></span>
-							<!-- arrival time -->
 							<span style="font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums;white-space:nowrap">{ws.arrivalStr}</span>
 						</div>
-						{#if i < waterArrivalRows.length - 1 && ws.arrivalSecs > 0}
-							{@const gapMins = Math.round((waterArrivalRows[i + 1].arrivalSecs - ws.arrivalSecs) / 60)}
-							<div style="padding:1px 24px 1px 44px">
-								<span style="font-size:10px;color:#C8C8C8;font-variant-numeric:tabular-nums">{gapMins} mins</span>
-							</div>
-						{/if}
 					{/each}
 				</div>
 			{/if}
@@ -463,20 +459,19 @@
 						</div>
 						<!-- Station rows -->
 						{#each waterArrivalRows as ws, i}
-							<div style="display:flex;align-items:center;gap:8px;padding:5px 16px;border-top:1px solid var(--border-s)">
-								<svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+							{@const gapMins = (i < waterArrivalRows.length - 1 && ws.arrivalSecs > 0)
+								? Math.round((waterArrivalRows[i + 1].arrivalSecs - ws.arrivalSecs) / 60)
+								: null}
+							<div style="display:flex;align-items:center;gap:8px;padding:3px 16px;border-top:1px solid var(--border-s)">
+								<svg width="10" height="13" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
 									<path d="M6 1C6 1 1 6.5 1 9.5C1 12.5 3.2 14 6 14C8.8 14 11 12.5 11 9.5C11 6.5 6 1 6 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
 								</svg>
-								<span style="font-size:12px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums">{unitStore.current === 'mi' ? (ws.distM / 1609.344).toFixed(1) + ' mi' : ws.km + ' km'}</span>
+								<span style="font-size:11px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap">
+									{unitStore.current === 'mi' ? (ws.distM / 1609.344).toFixed(1) + ' mi' : ws.km + ' km'}{#if gapMins !== null}<span style="font-weight:400;color:#C8C8C8;font-size:10px"> ({gapMins} mins)</span>{/if}
+								</span>
 								<span style="flex:1"></span>
-								<span style="font-size:12px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums">{ws.arrivalStr}</span>
+								<span style="font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums">{ws.arrivalStr}</span>
 							</div>
-							{#if i < waterArrivalRows.length - 1 && ws.arrivalSecs > 0}
-								{@const gapMins = Math.round((waterArrivalRows[i + 1].arrivalSecs - ws.arrivalSecs) / 60)}
-								<div style="padding:1px 16px 1px 36px">
-									<span style="font-size:10px;color:#C8C8C8;font-variant-numeric:tabular-nums">{gapMins} mins</span>
-								</div>
-							{/if}
 						{/each}
 					</div>
 				{:else}
