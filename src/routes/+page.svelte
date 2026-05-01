@@ -8,6 +8,7 @@
 	import { pointsStore } from '$lib/spectatorPoints.svelte.js';
 	import { buildArrivalRows, kmLabel } from '$lib/arrivalRows.js';
 	import { WATER_STATIONS } from '$lib/waterStations.js';
+	import { unitStore } from '$lib/units.svelte.js';
 
 	onMount(async () => {
 		// pointsStore.load() fetches both /api/points and /api/settings in parallel;
@@ -74,8 +75,8 @@
 				<h1 class="text-xl font-bold tracking-tight" style="color:var(--ti); line-height:1.2">
 					Prague Marathon
 				</h1>
-				<!-- View mode toggle — filter pills -->
-				<div style="display:flex;gap:4px;flex-shrink:0;margin-left:12px">
+				<!-- View mode + unit toggles -->
+				<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:12px">
 					<button
 						onclick={() => { viewMode = 'planner'; }}
 						style="
@@ -100,6 +101,32 @@
 								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
 						"
 					>Spectate</button>
+					<!-- Divider -->
+					<span style="width:1px;height:16px;background:rgba(255,255,255,0.20);margin:0 2px;flex-shrink:0"></span>
+					<button
+						onclick={() => { unitStore.current = 'mi'; }}
+						style="
+							height:28px;padding:0 9px;border-radius:9999px;
+							font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+							cursor:pointer;transition:background 150ms ease,color 150ms ease;
+							font-family:var(--font);
+							{unitStore.current === 'mi'
+								? 'background:#4D8898;color:white;border:none;'
+								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
+						"
+					>mi</button>
+					<button
+						onclick={() => { unitStore.current = 'km'; }}
+						style="
+							height:28px;padding:0 9px;border-radius:9999px;
+							font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+							cursor:pointer;transition:background 150ms ease,color 150ms ease;
+							font-family:var(--font);
+							{unitStore.current === 'km'
+								? 'background:#4D8898;color:white;border:none;'
+								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
+						"
+					>km</button>
 				</div>
 			</div>
 		</div>
@@ -254,7 +281,7 @@
 								<path d="M6 1C6 1 1 6.5 1 9.5C1 12.5 3.2 14 6 14C8.8 14 11 12.5 11 9.5C11 6.5 6 1 6 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
 							</svg>
 							<!-- km label -->
-							<span style="font-size:11px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap">{ws.km} km</span>
+							<span style="font-size:11px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap">{unitStore.current === 'mi' ? (ws.distM / 1609.344).toFixed(1) + ' mi' : ws.km + ' km'}</span>
 							<span style="flex:1"></span>
 							<!-- arrival time -->
 							<span style="font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums;white-space:nowrap">{ws.arrivalStr}</span>
@@ -350,8 +377,8 @@
 				</div>
 			</button>
 
-			<!-- View mode toggle row -->
-			<div style="display:flex;justify-content:center;gap:6px;padding:4px 16px 2px;background:var(--surface)">
+			<!-- View mode + unit toggle row -->
+			<div style="display:flex;justify-content:center;align-items:center;gap:5px;padding:4px 16px 2px;background:var(--surface)">
 				<button
 					onclick={() => { viewMode = 'planner'; }}
 					style="
@@ -374,6 +401,29 @@
 							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
 					"
 				>Spectate</button>
+				<span style="width:1px;height:14px;background:#E0E0E0;margin:0 1px;flex-shrink:0"></span>
+				<button
+					onclick={() => { unitStore.current = 'mi'; }}
+					style="
+						height:26px;padding:0 10px;border-radius:9999px;
+						font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+						cursor:pointer;font-family:var(--font);transition:background 150ms ease,color 150ms ease;
+						{unitStore.current === 'mi'
+							? 'background:#4D8898;color:white;border:none;'
+							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
+					"
+				>mi</button>
+				<button
+					onclick={() => { unitStore.current = 'km'; }}
+					style="
+						height:26px;padding:0 10px;border-radius:9999px;
+						font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+						cursor:pointer;font-family:var(--font);transition:background 150ms ease,color 150ms ease;
+						{unitStore.current === 'km'
+							? 'background:#4D8898;color:white;border:none;'
+							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
+					"
+				>km</button>
 			</div>
 
 			<!-- Mobile hint — shown only in planner mode -->
@@ -417,7 +467,7 @@
 								<svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
 									<path d="M6 1C6 1 1 6.5 1 9.5C1 12.5 3.2 14 6 14C8.8 14 11 12.5 11 9.5C11 6.5 6 1 6 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
 								</svg>
-								<span style="font-size:12px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums">{ws.km} km</span>
+								<span style="font-size:12px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums">{unitStore.current === 'mi' ? (ws.distM / 1609.344).toFixed(1) + ' mi' : ws.km + ' km'}</span>
 								<span style="flex:1"></span>
 								<span style="font-size:12px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums">{ws.arrivalStr}</span>
 							</div>

@@ -5,6 +5,7 @@
 	import { timeState } from './time.svelte.js';
 	import { pointsStore, type SpectatorPoint } from './spectatorPoints.svelte.js';
 	import { WATER_STATIONS } from './waterStations.js';
+	import { unitStore } from './units.svelte.js';
 
 	let { spectatorMode = false }: { spectatorMode?: boolean } = $props();
 
@@ -13,12 +14,21 @@
 	let profile = $state<ElePoint[]>([]);
 	let loadError = $state('');
 
-	const KM_MARKS = [0, 5, 10, 15, 20, 25, 30, 35, 40];
-	const FINISH_KM = Math.round((ROUTE_TOTAL_M / 1000) * 10) / 10;
+	const KM_MARKS  = [0, 5, 10, 15, 20, 25, 30, 35, 40];
+	const MI_MARKS  = [0, 5, 10, 15, 20, 25];
 
-	function pct(km: number): number {
-		return (km * 1000 / ROUTE_TOTAL_M) * 100;
-	}
+	const axisMarks = $derived.by(() =>
+		(unitStore.current === 'km' ? KM_MARKS : MI_MARKS).map(v => ({
+			distM: unitStore.current === 'km' ? v * 1000 : v * 1609.344,
+			label: v === 0 ? `0${unitStore.current}` : `${v}${unitStore.current}`,
+		}))
+	);
+
+	const finishLabel = $derived(
+		unitStore.current === 'km'
+			? `${(ROUTE_TOTAL_M / 1000).toFixed(1)}km`
+			: `${(ROUTE_TOTAL_M / 1609.344).toFixed(1)}mi`
+	);
 
 	function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): number {
 		const R = 6371000;
@@ -127,7 +137,7 @@
 				const label =
 					elapsed < 0    ? `${name} — at start` :
 					distM >= MARATHON_DIST_M ? `${name} — finished` :
-					                 `${name} — ${distKm.toFixed(1)} km`;
+					                 `${name} — ${unitStore.format(distM)}`;
 
 				const labelTransform =
 					xPct < 8  ? 'translateX(0)' :
@@ -190,11 +200,11 @@
 
 		<line x1="0" y1={AXIS_Y} x2="1000" y2={AXIS_Y} stroke="#E0E0E0" stroke-width="1.5" />
 
-		{#each KM_MARKS as km}
+		{#each axisMarks as mark}
 			<line
-				x1={(km * 1000 / ROUTE_TOTAL_M) * 1000}
+				x1={(mark.distM / ROUTE_TOTAL_M) * 1000}
 				y1={TICK_TOP}
-				x2={(km * 1000 / ROUTE_TOTAL_M) * 1000}
+				x2={(mark.distM / ROUTE_TOTAL_M) * 1000}
 				y2={AXIS_Y}
 				stroke="#E0E0E0"
 				stroke-width="1"
@@ -338,14 +348,17 @@
 
 	<!-- X-axis distance labels -->
 	<div class="absolute bottom-0 left-0 right-0 h-6">
-		<span class="absolute left-0 bottom-1 label-caps" style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)">0km</span>
-		{#each KM_MARKS.slice(1) as km}
-			<span
-				class="absolute bottom-1 -translate-x-1/2 label-caps"
-				style="left:{pct(km)}%;font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)"
-			>{km}km</span>
+		{#each axisMarks as mark, i}
+			{#if i === 0}
+				<span class="absolute left-0 bottom-1 label-caps" style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)">{mark.label}</span>
+			{:else}
+				<span
+					class="absolute bottom-1 -translate-x-1/2 label-caps"
+					style="left:{(mark.distM / ROUTE_TOTAL_M) * 100}%;font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)"
+				>{mark.label}</span>
+			{/if}
 		{/each}
-		<span class="absolute right-0 bottom-1 label-caps" style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)">{FINISH_KM}km</span>
+		<span class="absolute right-0 bottom-1 label-caps" style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--t3)">{finishLabel}</span>
 	</div>
 
 </div>

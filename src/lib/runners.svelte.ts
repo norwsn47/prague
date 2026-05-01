@@ -1,3 +1,5 @@
+import { unitStore } from './units.svelte.js';
+
 export const MARATHON_DIST_M = 42195;
 
 export class Runner {
@@ -29,14 +31,11 @@ export class Runner {
 		return secs > 0 ? secs / MARATHON_DIST_M : 0;
 	}
 
-	/** Human-readable pace string, e.g. "4:16 /km" */
+	/** Human-readable pace string, e.g. "4:16 /km" or "6:52 /mi" */
 	get paceString(): string {
 		const secs = this.finishSeconds;
 		if (secs <= 0) return '';
-		const secsPerKm = secs / 42.195;
-		const mins = Math.floor(secsPerKm / 60);
-		const sec = Math.round(secsPerKm % 60);
-		return `${mins}:${String(sec).padStart(2, '0')} /km`;
+		return unitStore.paceLabel(secs / 42.195);
 	}
 
 	get isValid(): boolean {

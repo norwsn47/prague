@@ -1,5 +1,6 @@
 import { runner1, runner2, formatTime, MARATHON_DIST_M } from './runners.svelte.js';
 import type { SpectatorPoint } from './spectatorPoints.svelte.js';
+import { unitStore } from './units.svelte.js';
 
 export type ArrivalRow = {
 	key: string;
@@ -39,5 +40,5 @@ export function buildArrivalRows(point: SpectatorPoint): ArrivalRow[] {
 }
 
 export function kmLabel(distM: number): string {
-	return (distM / 1000).toFixed(1) + ' km';
+	return unitStore.format(distM);
 }

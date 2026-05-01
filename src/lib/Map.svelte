@@ -5,6 +5,7 @@
 	import { timeState } from './time.svelte.js';
 	import { pointsStore } from './spectatorPoints.svelte.js';
 	import { WATER_STATIONS } from './waterStations.js';
+	import { unitStore } from './units.svelte.js';
 	import PointPopup from './PointPopup.svelte';
 
 	let { spectatorMode = false }: { spectatorMode?: boolean } = $props();
@@ -21,6 +22,7 @@
 	const popupInstances = new Map<string, { instance: Record<string, unknown>; container: HTMLDivElement }>();
 	const waterMarkers = new Map<string, import('leaflet').Marker>();
 	let spectatorPaneEl: HTMLElement | null = null;
+	const distanceMarkers: Array<{ distM: number; marker: import('leaflet').Marker }> = [];
 
 	// Prevents a new point being created on the same click that closes an open popup
 	let justClosedPopup = false;
@@ -233,6 +235,15 @@
 		}
 	});
 
+	// Relabel km/mi distance markers when unit changes
+	$effect(() => {
+		if (!mapLoaded) return;
+		void unitStore.current; // track
+		for (const { distM, marker } of distanceMarkers) {
+			marker.setIcon(distanceIcon(unitStore.mapLabel(distM), 'km'));
+		}
+	});
+
 	// Water station markers — only shown in spectator mode
 	$effect(() => {
 		if (!mapLoaded) return;
@@ -288,8 +299,10 @@
 		L.marker([sfLat, sfLon], { icon: distanceIcon('Start / Finish', 'start-finish'), zIndexOffset: 500 }).addTo(map);
 
 		for (const km of [10, 20, 30, 40]) {
-			const [lon, lat] = positionAtDistance(km * 1000);
-			L.marker([lat, lon], { icon: distanceIcon(`${km} km`, 'km'), zIndexOffset: 400 }).addTo(map);
+			const distM = km * 1000;
+			const [lon, lat] = positionAtDistance(distM);
+			const m = L.marker([lat, lon], { icon: distanceIcon(`${km} km`, 'km'), zIndexOffset: 400 }).addTo(map);
+			distanceMarkers.push({ distM, marker: m });
 		}
 
 		const ARROW_INTERVAL_M = 1000;
