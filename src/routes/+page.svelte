@@ -4,9 +4,10 @@
 	import RunnerPanel from '$lib/RunnerPanel.svelte';
 	import TimeSlider from '$lib/TimeSlider.svelte';
 	import ElevationStrip from '$lib/ElevationStrip.svelte';
-	import { runner1, runner2 } from '$lib/runners.svelte.js';
+	import { runner1, runner2, formatTime } from '$lib/runners.svelte.js';
 	import { pointsStore } from '$lib/spectatorPoints.svelte.js';
 	import { buildArrivalRows, kmLabel } from '$lib/arrivalRows.js';
+	import { WATER_STATIONS } from '$lib/waterStations.js';
 
 	onMount(async () => {
 		// pointsStore.load() fetches both /api/points and /api/settings in parallel;
@@ -16,6 +17,18 @@
 		if (settings.runner_1_finish) runner1.finishTime = settings.runner_1_finish;
 		if (settings.runner_2_start) runner2.startTime  = settings.runner_2_start;
 		if (settings.runner_2_finish) runner2.finishTime = settings.runner_2_finish;
+	});
+
+	let viewMode = $state<'planner' | 'spectator'>('planner');
+	let spectatorRunner = $state<'will' | 'maggie'>('will');
+
+	const waterArrivalRows = $derived.by(() => {
+		const r = spectatorRunner === 'will' ? runner1 : runner2;
+		if (!r.isValid) return WATER_STATIONS.map(ws => ({ ...ws, arrivalSecs: 0, arrivalStr: '--' }));
+		return WATER_STATIONS.map(ws => {
+			const arrivalSecs = r.startSeconds + ws.distM * r.pacePerMetre;
+			return { ...ws, arrivalSecs, arrivalStr: formatTime(arrivalSecs) };
+		});
 	});
 
 	let mobileRunnerOpen = $state(false);
@@ -57,9 +70,38 @@
 		<!-- Header bar -->
 		<div class="shrink-0 px-6 py-5" style="background:var(--dark-1)">
 			<p class="label-caps" style="color:var(--accent-dark)">Spectator Planner</p>
-			<h1 class="mt-1.5 text-xl font-bold tracking-tight" style="color:var(--ti); line-height:1.2">
-				Prague Marathon
-			</h1>
+			<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+				<h1 class="text-xl font-bold tracking-tight" style="color:var(--ti); line-height:1.2">
+					Prague Marathon
+				</h1>
+				<!-- View mode toggle — filter pills -->
+				<div style="display:flex;gap:4px;flex-shrink:0;margin-left:12px">
+					<button
+						onclick={() => { viewMode = 'planner'; }}
+						style="
+							height:28px;padding:0 11px;border-radius:9999px;
+							font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+							cursor:pointer;transition:background 150ms ease,color 150ms ease;
+							font-family:var(--font);
+							{viewMode === 'planner'
+								? 'background:#4D8898;color:white;border:none;'
+								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
+						"
+					>Plan</button>
+					<button
+						onclick={() => { viewMode = 'spectator'; }}
+						style="
+							height:28px;padding:0 11px;border-radius:9999px;
+							font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+							cursor:pointer;transition:background 150ms ease,color 150ms ease;
+							font-family:var(--font);
+							{viewMode === 'spectator'
+								? 'background:#4D8898;color:white;border:none;'
+								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
+						"
+					>Spectate</button>
+				</div>
+			</div>
 		</div>
 		<!-- 3px Ocean Accent stripe — Outbuild signature detail -->
 		<div class="shrink-0" style="height:3px; background:#8AC0BC"></div>
@@ -76,102 +118,153 @@
 			</div>
 			<RunnerPanel />
 
-			<!-- Spectator points section — heading always visible -->
-			<div style="border-top:1px solid var(--border-s); padding:16px 24px 6px">
-				<p class="label-caps">Spectator Points</p>
-				<p style="margin:4px 0 0; font-size:11px; color:var(--t3); line-height:1.4">
-					Click anywhere along the route to add a viewing spot.
-				</p>
-			</div>
+			{#if viewMode === 'planner'}
+				<!-- ── PLANNER: spectator points ──────────────────────────────── -->
+				<div style="border-top:1px solid var(--border-s); padding:16px 24px 6px">
+					<p class="label-caps">Spectator Points</p>
+					<p style="margin:4px 0 0; font-size:11px; color:var(--t3); line-height:1.4">
+						Click anywhere along the route to add a viewing spot.
+					</p>
+				</div>
 
-			{#if pointsStore.sorted.length > 0}
-				<div style="margin-bottom:8px">
-					{#each pointsStore.sorted as point, i}
-						{@const letter = String.fromCharCode(65 + i)}
-						{@const isFirst = i === 0}
-						{@const isLast = i === pointsStore.sorted.length - 1}
-						{@const isExpanded = expandedIds.has(point.id)}
-						{@const rows = buildArrivalRows(point)}
-						<div class="sp-row">
-							<!-- Main row -->
-							<div style="display:flex; align-items:center; gap:8px; padding:6px 12px 6px 24px">
-								<!-- Letter badge -->
-								<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">{letter}</span>
+				{#if pointsStore.sorted.length > 0}
+					<div style="margin-bottom:8px">
+						{#each pointsStore.sorted as point, i}
+							{@const letter = String.fromCharCode(65 + i)}
+							{@const isFirst = i === 0}
+							{@const isLast = i === pointsStore.sorted.length - 1}
+							{@const isExpanded = expandedIds.has(point.id)}
+							{@const rows = buildArrivalRows(point)}
+							<div class="sp-row">
+								<!-- Main row -->
+								<div style="display:flex; align-items:center; gap:8px; padding:6px 12px 6px 24px">
+									<!-- Letter badge -->
+									<span style="width:18px;height:18px;border-radius:50%;background:#4D8898;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">{letter}</span>
 
-								<!-- Name — clicking opens popup -->
-								<button
-									onclick={() => { pointsStore.openPopupId = point.id; }}
-									style="flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;font-size:12px;font-weight:500;color:var(--t1);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font)"
-								>{point.name || 'Unnamed spot'}</button>
-
-								<!-- Up / down -->
-								<div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
+									<!-- Name — clicking opens popup -->
 									<button
-										onclick={() => pointsStore.moveUp(point.id)}
-										disabled={isFirst}
-										aria-label="Move up"
-										style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isFirst ? 'default' : 'pointer'};color:{isFirst ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
-									>
-										<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2L9 7H1L5 2Z" fill="currentColor"/></svg>
-									</button>
-									<button
-										onclick={() => pointsStore.moveDown(point.id)}
-										disabled={isLast}
-										aria-label="Move down"
-										style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isLast ? 'default' : 'pointer'};color:{isLast ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
-									>
-										<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8L1 3H9L5 8Z" fill="currentColor"/></svg>
-									</button>
+										onclick={() => { pointsStore.openPopupId = point.id; }}
+										style="flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;font-size:12px;font-weight:500;color:var(--t1);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font)"
+									>{point.name || 'Unnamed spot'}</button>
+
+									<!-- Up / down -->
+									<div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0">
+										<button
+											onclick={() => pointsStore.moveUp(point.id)}
+											disabled={isFirst}
+											aria-label="Move up"
+											style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isFirst ? 'default' : 'pointer'};color:{isFirst ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
+										>
+											<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2L9 7H1L5 2Z" fill="currentColor"/></svg>
+										</button>
+										<button
+											onclick={() => pointsStore.moveDown(point.id)}
+											disabled={isLast}
+											aria-label="Move down"
+											style="width:18px;height:18px;border:none;background:none;padding:0;cursor:{isLast ? 'default' : 'pointer'};color:{isLast ? 'var(--border)' : 'var(--t2)'};display:flex;align-items:center;justify-content:center"
+										>
+											<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8L1 3H9L5 8Z" fill="currentColor"/></svg>
+										</button>
+									</div>
+
+									<!-- Expand toggle (only when rows exist) -->
+									{#if rows.length > 0}
+										<button
+											onclick={() => toggleExpanded(point.id)}
+											aria-label={isExpanded ? 'Collapse' : 'Expand'}
+											style="width:18px;height:18px;border:none;background:none;padding:0;cursor:pointer;color:var(--t2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s;transform:rotate({isExpanded ? 90 : 0}deg)"
+										>
+											<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 2L7 5L3 8Z" fill="currentColor"/></svg>
+										</button>
+									{/if}
 								</div>
 
-								<!-- Expand toggle (only when rows exist) -->
-								{#if rows.length > 0}
-									<button
-										onclick={() => toggleExpanded(point.id)}
-										aria-label={isExpanded ? 'Collapse' : 'Expand'}
-										style="width:18px;height:18px;border:none;background:none;padding:0;cursor:pointer;color:var(--t2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s;transform:rotate({isExpanded ? 90 : 0}deg)"
-									>
-										<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 2L7 5L3 8Z" fill="currentColor"/></svg>
-									</button>
+								<!-- Expanded arrival table -->
+								{#if isExpanded && rows.length > 0}
+									<table style="width:100%;border-collapse:collapse;padding:0 24px 8px;display:table">
+										<tbody>
+											{#each rows as row}
+												{@const isHidden = pointsStore.isSlotHidden(point.id, row.key)}
+												<tr style="opacity:{isHidden ? 0.35 : 1};transition:opacity 0.15s ease">
+													<td style="padding:3px 6px 3px 24px;font-size:11px;font-weight:600;color:{row.color}">{row.name}</td>
+													<td style="padding:3px 6px;font-size:11px;color:#9E9E9E;font-variant-numeric:tabular-nums">{kmLabel(row.distM)}</td>
+													<td style="padding:3px 6px;text-align:right;font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums;white-space:nowrap">{row.arrivalStr}</td>
+													<td style="padding:3px 12px 3px 4px;text-align:right">
+														<button
+															onclick={() => pointsStore.toggleSlot(point.id, row.key)}
+															title={isHidden ? 'Show' : 'Hide'}
+															style="background:none;border:none;padding:2px;cursor:pointer;color:{isHidden ? '#9E9E9E' : '#D0D0D0'};display:inline-flex;align-items:center;justify-content:center;line-height:0"
+														>
+															{#if isHidden}
+																<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+																	<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+																	<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+																	<line x1="1" y1="1" x2="23" y2="23"/>
+																</svg>
+															{:else}
+																<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+																	<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+																	<circle cx="12" cy="12" r="3"/>
+																</svg>
+															{/if}
+														</button>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
 								{/if}
 							</div>
+						{/each}
+					</div>
+				{/if}
+			{:else}
+				<!-- ── SPECTATOR: water stations ───────────────────────────────── -->
+				<div style="border-top:1px solid var(--border-s); padding:16px 24px 8px">
+					<p class="label-caps">Water Stations</p>
+					<!-- Runner selector pills -->
+					<div style="display:flex;gap:6px;margin-top:10px">
+						{#each [{ id: 'will', runner: runner1 }, { id: 'maggie', runner: runner2 }] as { id, runner }}
+							<button
+								onclick={() => { spectatorRunner = id as 'will' | 'maggie'; }}
+								style="
+									height:28px;padding:0 14px;border-radius:9999px;
+									font-size:11px;font-weight:600;cursor:pointer;
+									font-family:var(--font);transition:background 150ms ease,color 150ms ease,border-color 150ms ease;
+									{spectatorRunner === id
+										? `background:#4D8898;color:white;border:none;`
+										: `background:white;color:#2C2C2C;border:1px solid #E0E0E0;`}
+								"
+							>
+								<span style="display:inline-flex;align-items:center;gap:5px">
+									<span style="width:7px;height:7px;border-radius:50%;background:{runner.hexColor};flex-shrink:0"></span>
+									{runner.name}
+								</span>
+							</button>
+						{/each}
+					</div>
+				</div>
 
-							<!-- Expanded arrival table -->
-							{#if isExpanded && rows.length > 0}
-								<table style="width:100%;border-collapse:collapse;padding:0 24px 8px;display:table">
-									<tbody>
-										{#each rows as row}
-											{@const isHidden = pointsStore.isSlotHidden(point.id, row.key)}
-											<tr style="opacity:{isHidden ? 0.35 : 1};transition:opacity 0.15s ease">
-												<td style="padding:3px 6px 3px 24px;font-size:11px;font-weight:600;color:{row.color}">{row.name}</td>
-												<td style="padding:3px 6px;font-size:11px;color:#9E9E9E;font-variant-numeric:tabular-nums">{kmLabel(row.distM)}</td>
-												<td style="padding:3px 6px;text-align:right;font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums;white-space:nowrap">{row.arrivalStr}</td>
-												<td style="padding:3px 12px 3px 4px;text-align:right">
-													<button
-														onclick={() => pointsStore.toggleSlot(point.id, row.key)}
-														title={isHidden ? 'Show' : 'Hide'}
-														style="background:none;border:none;padding:2px;cursor:pointer;color:{isHidden ? '#9E9E9E' : '#D0D0D0'};display:inline-flex;align-items:center;justify-content:center;line-height:0"
-													>
-														{#if isHidden}
-															<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-																<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-																<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-																<line x1="1" y1="1" x2="23" y2="23"/>
-															</svg>
-														{:else}
-															<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-																<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-																<circle cx="12" cy="12" r="3"/>
-															</svg>
-														{/if}
-													</button>
-												</td>
-											</tr>
-										{/each}
-									</tbody>
-								</table>
-							{/if}
+				<!-- Water station list -->
+				<div style="margin-bottom:8px">
+					{#each waterArrivalRows as ws, i}
+						<div style="display:flex;align-items:center;gap:8px;padding:5px 24px;border-bottom:1px solid var(--border-s)">
+							<!-- Drop icon -->
+							<svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+								<path d="M6 1C6 1 1 6.5 1 9.5C1 12.5 3.2 14 6 14C8.8 14 11 12.5 11 9.5C11 6.5 6 1 6 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
+							</svg>
+							<!-- km label -->
+							<span style="font-size:11px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap">{ws.km} km</span>
+							<span style="flex:1"></span>
+							<!-- arrival time -->
+							<span style="font-size:11px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums;white-space:nowrap">{ws.arrivalStr}</span>
 						</div>
+						{#if i < waterArrivalRows.length - 1 && ws.arrivalSecs > 0}
+							{@const gapMins = Math.round((waterArrivalRows[i + 1].arrivalSecs - ws.arrivalSecs) / 60)}
+							<div style="padding:1px 24px 1px 44px">
+								<span style="font-size:10px;color:#C8C8C8;font-variant-numeric:tabular-nums">{gapMins} mins</span>
+							</div>
+						{/if}
 					{/each}
 				</div>
 			{/if}
@@ -188,7 +281,7 @@
 		     Leaflet's internal z-indices (tiles:200 … controls:800), preventing them
 		     from competing with the elevation card (z-index:10) in the parent context -->
 		<div class="flex-1 min-h-0" style="isolation:isolate">
-			<Map />
+			<Map spectatorMode={viewMode === 'spectator'} />
 		</div>
 
 		<!-- Desktop: floating elevation card — sibling of map, not nested inside it -->
@@ -205,7 +298,7 @@
 			z-index:10;
 			pointer-events:auto;
 		">
-			<ElevationStrip />
+			<ElevationStrip spectatorMode={viewMode === 'spectator'} />
 		</div>
 
 		<!-- ── MOBILE BOTTOM STACK ──────────────────────────────────────────────
@@ -257,15 +350,87 @@
 				</div>
 			</button>
 
-			<!-- Mobile hint -->
-			<div style="padding:3px 16px 5px; background:var(--surface)">
-				<p style="font-size:10px; color:var(--t3); text-align:center; margin:0">
-					Tap near the route to add a marker
-				</p>
+			<!-- View mode toggle row -->
+			<div style="display:flex;justify-content:center;gap:6px;padding:4px 16px 2px;background:var(--surface)">
+				<button
+					onclick={() => { viewMode = 'planner'; }}
+					style="
+						height:26px;padding:0 12px;border-radius:9999px;
+						font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+						cursor:pointer;font-family:var(--font);transition:background 150ms ease,color 150ms ease;
+						{viewMode === 'planner'
+							? 'background:#4D8898;color:white;border:none;'
+							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
+					"
+				>Plan</button>
+				<button
+					onclick={() => { viewMode = 'spectator'; }}
+					style="
+						height:26px;padding:0 12px;border-radius:9999px;
+						font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+						cursor:pointer;font-family:var(--font);transition:background 150ms ease,color 150ms ease;
+						{viewMode === 'spectator'
+							? 'background:#4D8898;color:white;border:none;'
+							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
+					"
+				>Spectate</button>
 			</div>
+
+			<!-- Mobile hint — shown only in planner mode -->
+			{#if viewMode === 'planner'}
+				<div style="padding:3px 16px 5px; background:var(--surface)">
+					<p style="font-size:10px; color:var(--t3); text-align:center; margin:0">
+						Tap near the route to add a marker
+					</p>
+				</div>
+			{/if}
 
 			<!-- Expanded runner inputs — visible only when open -->
 			{#if mobileRunnerOpen}
+				{#if viewMode === 'spectator'}
+					<!-- Spectator mode: water stations list -->
+					<div style="border-top:1px solid var(--border-s); overflow-y:auto; max-height:50vh; background:var(--surface)">
+						<!-- Runner selector -->
+						<div style="display:flex;gap:6px;padding:10px 16px 8px">
+							{#each [{ id: 'will', runner: runner1 }, { id: 'maggie', runner: runner2 }] as { id, runner }}
+								<button
+									onclick={() => { spectatorRunner = id as 'will' | 'maggie'; }}
+									style="
+										height:28px;padding:0 14px;border-radius:9999px;
+										font-size:11px;font-weight:600;cursor:pointer;
+										font-family:var(--font);transition:background 150ms ease,color 150ms ease,border-color 150ms ease;
+										{spectatorRunner === id
+											? 'background:#4D8898;color:white;border:none;'
+											: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
+									"
+								>
+									<span style="display:inline-flex;align-items:center;gap:5px">
+										<span style="width:7px;height:7px;border-radius:50%;background:{runner.hexColor};flex-shrink:0"></span>
+										{runner.name}
+									</span>
+								</button>
+							{/each}
+						</div>
+						<!-- Station rows -->
+						{#each waterArrivalRows as ws, i}
+							<div style="display:flex;align-items:center;gap:8px;padding:5px 16px;border-top:1px solid var(--border-s)">
+								<svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+									<path d="M6 1C6 1 1 6.5 1 9.5C1 12.5 3.2 14 6 14C8.8 14 11 12.5 11 9.5C11 6.5 6 1 6 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
+								</svg>
+								<span style="font-size:12px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums">{ws.km} km</span>
+								<span style="flex:1"></span>
+								<span style="font-size:12px;font-weight:700;color:#2C2C2C;font-variant-numeric:tabular-nums">{ws.arrivalStr}</span>
+							</div>
+							{#if i < waterArrivalRows.length - 1 && ws.arrivalSecs > 0}
+								{@const gapMins = Math.round((waterArrivalRows[i + 1].arrivalSecs - ws.arrivalSecs) / 60)}
+								<div style="padding:1px 16px 1px 36px">
+									<span style="font-size:10px;color:#C8C8C8;font-variant-numeric:tabular-nums">{gapMins} mins</span>
+								</div>
+							{/if}
+						{/each}
+					</div>
+				{:else}
+				<!-- Planner mode: runner edit inputs -->
 				<div style="border-top:1px solid var(--border-s); overflow-y:auto; max-height:50vh">
 					<!-- Two-column grid; minmax(0,1fr) prevents columns from overflowing -->
 					<div style="
@@ -342,12 +507,13 @@
 						{/each}
 					</div>
 				</div>
+				{/if}
 			{/if}
 
 			<!-- 2) ELEVATION PROFILE ──────────────────────────────────────────── -->
 			<div style="border-top:1px solid var(--border-s); padding:6px 8px 4px; background:var(--bg)">
 				<div style="height:76px; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08)">
-					<ElevationStrip />
+					<ElevationStrip spectatorMode={viewMode === 'spectator'} />
 				</div>
 			</div>
 

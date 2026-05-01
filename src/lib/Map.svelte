@@ -4,7 +4,10 @@
 	import { runner1, runner2, MARATHON_DIST_M } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
 	import { pointsStore } from './spectatorPoints.svelte.js';
+	import { WATER_STATIONS } from './waterStations.js';
 	import PointPopup from './PointPopup.svelte';
+
+	let { spectatorMode = false }: { spectatorMode?: boolean } = $props();
 
 	let mapEl: HTMLDivElement;
 	let mapLoaded = $state(false);
@@ -16,6 +19,8 @@
 
 	const spectatorMarkers = new Map<string, import('leaflet').Marker>();
 	const popupInstances = new Map<string, { instance: Record<string, unknown>; container: HTMLDivElement }>();
+	const waterMarkers = new Map<string, import('leaflet').Marker>();
+	let spectatorPaneEl: HTMLElement | null = null;
 
 	// Prevents a new point being created on the same click that closes an open popup
 	let justClosedPopup = false;
@@ -55,6 +60,20 @@
 			html: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer"><div style="width:26px;height:26px;border-radius:50%;background:#4D8898;border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.20);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">${letter}</div></div>`,
 			iconSize: [32, 32],
 			iconAnchor: [16, 16],
+		});
+	}
+
+	function waterDropIcon(): import('leaflet').DivIcon {
+		return L.divIcon({
+			className: '',
+			html: `<div style="width:32px;height:38px;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-90%)">
+				<svg width="26" height="32" viewBox="0 0 26 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M13 2C13 2 3 14 3 20C3 25.5 7.5 29 13 29C18.5 29 23 25.5 23 20C23 14 13 2 13 2Z" fill="#4D8898" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+					<path d="M9 21.5C9 21.5 10 24.5 13 24.5" stroke="rgba(255,255,255,0.70)" stroke-width="1.5" stroke-linecap="round"/>
+				</svg>
+			</div>`,
+			iconSize: [0, 0],
+			iconAnchor: [0, 0],
 		});
 	}
 
@@ -201,11 +220,37 @@
 		syncMarker(runner2, marker2, runner2.hexColor, m => { marker2 = m; });
 	});
 
-	// Spectator marker add/remove/reletter
+	// Spectator marker add/remove/reletter — gated by spectatorMode
 	$effect(() => {
 		if (!mapLoaded) return;
-		void pointsStore.sorted; // tracked dependency
-		syncSpectatorMarkers();
+		void pointsStore.sorted;
+		if (spectatorMode) {
+			// hide the spectator pane while in spectator mode
+			if (spectatorPaneEl) spectatorPaneEl.style.display = 'none';
+		} else {
+			if (spectatorPaneEl) spectatorPaneEl.style.display = '';
+			syncSpectatorMarkers();
+		}
+	});
+
+	// Water station markers — only shown in spectator mode
+	$effect(() => {
+		if (!mapLoaded) return;
+		if (spectatorMode) {
+			for (const ws of WATER_STATIONS) {
+				if (!waterMarkers.has(ws.id)) {
+					const m = L.marker([ws.lat, ws.lon], {
+						icon: waterDropIcon(),
+						zIndexOffset: 500,
+						interactive: false,
+					}).addTo(map);
+					waterMarkers.set(ws.id, m);
+				}
+			}
+		} else {
+			for (const [, m] of waterMarkers) m.remove();
+			waterMarkers.clear();
+		}
 	});
 
 	// External trigger: elevation badge or sidebar row clicked
@@ -228,7 +273,7 @@
 		map = L.map(mapEl, { zoomControl: true }).setView([50.087591, 14.420676], 13);
 
 		// Spectator pane sits above the route overlay but below runner markers
-		const spectatorPaneEl = map.createPane('spectatorPane');
+		spectatorPaneEl = map.createPane('spectatorPane');
 		spectatorPaneEl.style.zIndex = '650';
 
 		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -257,8 +302,9 @@
 
 		map.fitBounds(L.latLngBounds(latLngs), { padding: [20, 20] });
 
-		// Click near route → create spectator point
+		// Click near route → create spectator point (disabled in spectator mode)
 		map.on('click', async (e: import('leaflet').LeafletMouseEvent) => {
+			if (spectatorMode) return;
 			if (pointsStore.openPopupId !== null || justClosedPopup) return;
 			const candidates = findAllSnapCandidates(e.latlng.lng, e.latlng.lat, 100);
 			if (candidates.length === 0) return;
@@ -290,6 +336,7 @@
 
 	onDestroy(() => {
 		for (const inst of popupInstances.values()) unmount(inst.instance);
+		for (const m of waterMarkers.values()) m.remove();
 		map?.remove();
 	});
 </script>

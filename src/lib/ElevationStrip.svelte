@@ -4,6 +4,9 @@
 	import { runner1, runner2, MARATHON_DIST_M } from './runners.svelte.js';
 	import { timeState } from './time.svelte.js';
 	import { pointsStore, type SpectatorPoint } from './spectatorPoints.svelte.js';
+	import { WATER_STATIONS } from './waterStations.js';
+
+	let { spectatorMode = false }: { spectatorMode?: boolean } = $props();
 
 	type ElePoint = { distanceKm: number; elevationM: number };
 
@@ -261,50 +264,77 @@
 			">{m.label}</div>
 		{/each}
 
-		<!-- Spectator point dashed lines (non-interactive) -->
-		{#each visibleSlots as slot}
-			{@const xPct = (slot.distM / ROUTE_TOTAL_M) * 100}
-			<div style="
-				position:absolute;
-				left:{xPct}%;
-				top:0;
-				width:1px;
-				height:100%;
-				transform:translateX(-50%);
-				background:repeating-linear-gradient(to bottom, #8AC0BC 0px, #8AC0BC 3px, transparent 3px, transparent 7px);
-				opacity:0.55;
-			"></div>
-		{/each}
+		<!-- Spectator point dashed lines (non-interactive) — planner mode only -->
+		{#if !spectatorMode}
+			{#each visibleSlots as slot}
+				{@const xPct = (slot.distM / ROUTE_TOTAL_M) * 100}
+				<div style="
+					position:absolute;
+					left:{xPct}%;
+					top:0;
+					width:1px;
+					height:100%;
+					transform:translateX(-50%);
+					background:repeating-linear-gradient(to bottom, #8AC0BC 0px, #8AC0BC 3px, transparent 3px, transparent 7px);
+					opacity:0.55;
+				"></div>
+			{/each}
+		{/if}
 	</div>
 
-	<!-- Spectator point letter badges — clickable, rendered above x-axis labels -->
-	{#each visibleSlots as slot}
-		{@const xPct = (slot.distM / ROUTE_TOTAL_M) * 100}
-		{@const letter = pointsStore.letterFor(slot.point.id)}
-		{@const shift = xPct < 5 ? 'translateX(0)' : xPct > 95 ? 'translateX(-100%)' : 'translateX(-50%)'}
-		<button
-			onclick={() => { pointsStore.openPopupId = slot.point.id; }}
-			title="{letter}{slot.point.name ? ` — ${slot.point.name}` : ''}"
-			style="
-				position:absolute;
-				left:{xPct}%;
-				bottom:2px;
-				transform:{shift};
-				z-index:10;
-				width:16px; height:16px;
-				border-radius:50%;
-				background:#4D8898;
-				border:1.5px solid white;
-				box-shadow:0 1px 3px rgba(0,0,0,0.20);
-				color:white;
-				font-size:9px; font-weight:700;
-				display:flex; align-items:center; justify-content:center;
-				cursor:pointer;
-				font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-				padding:0;
-			"
-		>{letter}</button>
-	{/each}
+	<!-- Planner mode: spectator point letter badges -->
+	{#if !spectatorMode}
+		{#each visibleSlots as slot}
+			{@const xPct = (slot.distM / ROUTE_TOTAL_M) * 100}
+			{@const letter = pointsStore.letterFor(slot.point.id)}
+			{@const shift = xPct < 5 ? 'translateX(0)' : xPct > 95 ? 'translateX(-100%)' : 'translateX(-50%)'}
+			<button
+				onclick={() => { pointsStore.openPopupId = slot.point.id; }}
+				title="{letter}{slot.point.name ? ` — ${slot.point.name}` : ''}"
+				style="
+					position:absolute;
+					left:{xPct}%;
+					bottom:2px;
+					transform:{shift};
+					z-index:10;
+					width:16px; height:16px;
+					border-radius:50%;
+					background:#4D8898;
+					border:1.5px solid white;
+					box-shadow:0 1px 3px rgba(0,0,0,0.20);
+					color:white;
+					font-size:9px; font-weight:700;
+					display:flex; align-items:center; justify-content:center;
+					cursor:pointer;
+					font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+					padding:0;
+				"
+			>{letter}</button>
+		{/each}
+	{/if}
+
+	<!-- Spectator mode: water station drop icons along the bottom -->
+	{#if spectatorMode}
+		{#each WATER_STATIONS as ws}
+			{@const xPct = (ws.distM / ROUTE_TOTAL_M) * 100}
+			{@const shift = xPct < 3 ? 'translateX(0)' : xPct > 97 ? 'translateX(-100%)' : 'translateX(-50%)'}
+			<div
+				title="{ws.km} km"
+				style="
+					position:absolute;
+					left:{xPct}%;
+					bottom:2px;
+					transform:{shift};
+					z-index:10;
+					pointer-events:none;
+				"
+			>
+				<svg width="10" height="13" viewBox="0 0 10 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M5 1C5 1 1 5.5 1 7.8C1 10.3 2.8 12 5 12C7.2 12 9 10.3 9 7.8C9 5.5 5 1 5 1Z" fill="#4D8898" stroke="white" stroke-width="1" stroke-linejoin="round"/>
+				</svg>
+			</div>
+		{/each}
+	{/if}
 
 	<!-- X-axis distance labels -->
 	<div class="absolute bottom-0 left-0 right-0 h-6">
