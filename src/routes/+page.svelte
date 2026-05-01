@@ -88,7 +88,7 @@
 								? 'background:#4D8898;color:white;border:none;'
 								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
 						"
-					>Plan</button>
+					>Spectate</button>
 					<button
 						onclick={() => { viewMode = 'spectator'; }}
 						style="
@@ -100,7 +100,7 @@
 								? 'background:#4D8898;color:white;border:none;'
 								: 'background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);'}
 						"
-					>Spectate</button>
+					>Runner</button>
 					<!-- Divider -->
 					<span style="width:1px;height:16px;background:rgba(255,255,255,0.20);margin:0 2px;flex-shrink:0"></span>
 					<button
@@ -385,7 +385,7 @@
 							? 'background:#4D8898;color:white;border:none;'
 							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
 					"
-				>Plan</button>
+				>Spectate</button>
 				<button
 					onclick={() => { viewMode = 'spectator'; }}
 					style="
@@ -396,7 +396,7 @@
 							? 'background:#4D8898;color:white;border:none;'
 							: 'background:white;color:#2C2C2C;border:1px solid #E0E0E0;'}
 					"
-				>Spectate</button>
+				>Runner</button>
 				<span style="width:1px;height:14px;background:#E0E0E0;margin:0 1px;flex-shrink:0"></span>
 				<button
 					onclick={() => { unitStore.current = 'mi'; }}
